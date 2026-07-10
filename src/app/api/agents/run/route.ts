@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { AGENT_TEAM, AgentKey, consoleUrl, startAgentSession } from "@/lib/agents";
 import { supabase } from "@/lib/supabase";
-import { getSite, logActivity } from "@/lib/data";
+import { getUserSite, logActivity } from "@/lib/data";
 
 const Body = z.object({
   agent: z.enum(Object.keys(AGENT_TEAM) as [AgentKey, ...AgentKey[]]),
@@ -21,28 +21,34 @@ export async function POST(req: NextRequest) {
   }
   const { agent, kind, prompt } = parsed.data;
 
+  const { site } = await getUserSite(userId);
+  if (!site || site.id === "demo") {
+    return NextResponse.json(
+      { error: "Connect your website first (Dashboard → Connect)." },
+      { status: 400 },
+    );
+  }
+
   try {
     const session = await startAgentSession({
       agent,
-      title: `${AGENT_TEAM[agent].name} — ${kind}`,
+      title: `${AGENT_TEAM[agent].name} — ${kind} — ${site.name}`,
       kickoff: prompt,
-      // Reviews and content work get the website repo mounted so concrete
-      // changes come back as seo/* branches → PRs → the Approvals queue.
-      mountRepo: ["full_review", "content", "deploy"].includes(kind),
+      site,
+      // Reviews and content work carry the change-delivery protocol:
+      // GitHub sites get the repo mounted; WordPress sites get the JSON protocol.
+      withChanges: ["full_review", "content", "deploy"].includes(kind),
     });
 
-    const { data: site } = await getSite();
     try {
       await supabase().from("agent_runs").insert({
-        site_id: site?.id === "demo" ? null : site?.id,
+        site_id: site.id,
         agent_name: AGENT_TEAM[agent].name,
         session_id: session.id,
         kind,
         status: "running",
       });
-      if (site && site.id !== "demo") {
-        await logActivity(site.id, "human", `Triggered ${AGENT_TEAM[agent].name} (${kind})`);
-      }
+      await logActivity(site.id, "human", `Triggered ${AGENT_TEAM[agent].name} (${kind})`);
     } catch {
       // DB not ready — session still started
     }

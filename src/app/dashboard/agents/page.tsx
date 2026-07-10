@@ -3,7 +3,9 @@ import { PageHeader, StatusBadge, timeAgo, DemoBanner } from "@/components/ui";
 import RunAgentButton from "@/components/RunAgentButton";
 import { AiLoader } from "@/components/ui/ai-agent-processing-states";
 import { AGENT_TEAM, AgentKey } from "@/lib/agents";
-import { getRuns, getSite } from "@/lib/data";
+import { auth } from "@clerk/nextjs/server";
+import ConnectPrompt from "@/components/ConnectPrompt";
+import { getRuns, getUserSite } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +53,12 @@ const PROMPTS: Record<AgentKey, { kind: string; prompt: (url: string, repo: stri
 };
 
 export default async function AgentsPage() {
-  const { data: site } = await getSite();
-  const { data: runs, demo } = await getRuns(30);
-  const url = site?.url ?? "https://seoforge.online";
-  const repo = site?.github_repo ?? "Helsinki-Code/seo-forge";
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+  const { data: runs } = await getRuns(site.id, 30);
+  const url = site.url;
+  const repo = site.github_repo ?? site.url;
 
   return (
     <>

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { anthropic } from "@/lib/agents";
+import { anthropic, getSessionMessages } from "@/lib/agents";
 import { supabase } from "@/lib/supabase";
-import { getSite, logActivity } from "@/lib/data";
-import { syncAgentBranches, siteRepo } from "@/lib/github";
+import { getSiteById, logActivity } from "@/lib/data";
+import { syncAgentBranches, siteRepoOf } from "@/lib/github";
+import { parseWpChanges } from "@/lib/wordpress";
 
 /**
- * Anthropic Managed Agents webhook receiver.
+ * Anthropic Managed Agents webhook receiver (multi-tenant).
  *
  * Register in the Anthropic Console (Manage → Webhooks):
  *   URL:    https://seoforge.online/api/webhooks/anthropic
@@ -13,8 +14,9 @@ import { syncAgentBranches, siteRepo } from "@/lib/github";
  *           session.status_terminated
  * Store the whsec_ signing secret as ANTHROPIC_WEBHOOK_SIGNING_KEY.
  *
- * Payloads are thin (event type + resource id) and HMAC-signed; unwrap()
- * verifies the signature and rejects stale deliveries.
+ * On completion this bridges agent output into the owning site's approval
+ * queue: GitHub sites → seo/* branches become PRs; WordPress sites → the
+ * structured changes block becomes approval cards.
  */
 export async function POST(req: NextRequest) {
   if (!process.env.ANTHROPIC_WEBHOOK_SIGNING_KEY) {
@@ -46,10 +48,16 @@ export async function POST(req: NextRequest) {
   if (!mapped) return NextResponse.json({ ok: true, ignored: type });
 
   try {
+    // Which run / site does this session belong to?
+    const { data: runRow } = await supabase()
+      .from("agent_runs")
+      .select("id, site_id")
+      .eq("session_id", sessionId)
+      .single();
+    const siteId = (runRow as { site_id?: string } | null)?.site_id ?? null;
+
     const update: Record<string, unknown> = { status: mapped.status };
     if (mapped.finished) update.finished_at = new Date().toISOString();
-
-    // On completion, pull the session title/usage for a human-readable summary
     if (mapped.finished) {
       try {
         const session = await anthropic().beta.sessions.retrieve(sessionId);
@@ -58,41 +66,64 @@ export async function POST(req: NextRequest) {
         // summary is best-effort
       }
     }
-
     await supabase().from("agent_runs").update(update).eq("session_id", sessionId);
 
-    const { data: site } = await getSite();
-    if (site && site.id !== "demo") {
-      await logActivity(
-        site.id,
-        "agent",
-        `Session ${sessionId.slice(0, 14)}… → ${mapped.status}`,
-      );
+    if (siteId) {
+      await logActivity(siteId, "agent", `Session ${sessionId.slice(0, 14)}… → ${mapped.status}`);
     }
 
-    // When a run finishes, bridge any agent-pushed seo/* branches into PRs
-    // so they surface in the Approvals queue automatically.
-    if (mapped.finished && process.env.GITHUB_TOKEN) {
-      try {
-        const created = await syncAgentBranches();
-        const { owner, repo } = siteRepo();
-        for (const c of created) {
-          await supabase().from("approvals").insert({
-            site_id: site?.id === "demo" ? null : site?.id,
-            title: c.title,
-            kind: "pr",
-            repo: `${owner}/${repo}`,
-            pr_number: c.prNumber,
-            detail: `Agent branch ${c.branch} — review the diff, then approve to merge & deploy.`,
-            status: "pending",
-            session_id: sessionId,
-          });
-          if (site && site.id !== "demo") {
+    // Bridge finished runs into the owning site's approval queue
+    if (mapped.finished && siteId) {
+      const site = await getSiteById(siteId);
+      if (site && (site.platform ?? "github") === "github") {
+        try {
+          const created = await syncAgentBranches(site);
+          const { owner, repo } = siteRepoOf(site);
+          for (const c of created) {
+            await supabase().from("approvals").insert({
+              site_id: site.id,
+              title: c.title,
+              kind: "pr",
+              repo: `${owner}/${repo}`,
+              pr_number: c.prNumber,
+              detail: `Agent branch ${c.branch} — review the diff, then approve to merge & deploy.`,
+              status: "pending",
+              session_id: sessionId,
+            });
             await logActivity(site.id, "agent", `Opened PR #${c.prNumber}: ${c.title}`);
           }
+        } catch {
+          // bridge is best-effort; manual sync button exists on Approvals
         }
-      } catch {
-        // bridge is best-effort; manual sync button exists on Approvals
+      } else if (site && site.platform === "wordpress") {
+        try {
+          const messages = await getSessionMessages(sessionId);
+          const changes = parseWpChanges(messages);
+          for (const change of changes) {
+            const title =
+              change.type === "update_post"
+                ? `Update post #${change.post_id}${change.title ? `: ${change.title}` : ""}`
+                : `New post: ${change.title}`;
+            await supabase().from("approvals").insert({
+              site_id: site.id,
+              title,
+              kind: change.type === "update_post" ? "wp_update" : "wp_new",
+              detail: change.rationale ?? "Proposed by the agent team.",
+              payload: change,
+              status: "pending",
+              session_id: sessionId,
+            });
+          }
+          if (changes.length > 0) {
+            await logActivity(
+              site.id,
+              "agent",
+              `${changes.length} WordPress change${changes.length > 1 ? "s" : ""} awaiting approval`,
+            );
+          }
+        } catch {
+          // best-effort
+        }
       }
     }
   } catch {

@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { Site } from "./data";
+import { siteRepoOf, siteTokenOf } from "./github";
 
 /** The autonomous SEO team — persisted Anthropic Managed Agents. */
 export const AGENT_TEAM = {
@@ -75,29 +77,67 @@ export function branchProtocol(repo: string): string {
   ].join("\n");
 }
 
+/** Change protocol for WordPress sites: structured JSON the platform applies. */
+export function wpProtocol(url: string): string {
+  return [
+    ``,
+    `--- CHANGE-DELIVERY PROTOCOL (mandatory) ---`,
+    `This is a WordPress site: ${url}. You have NO direct write access.`,
+    `Review the live site with web_fetch (pages, posts, ${url.replace(/\/$/, "")}/wp-json/wp/v2/posts for post IDs).`,
+    `When you have concrete changes, END your final message with exactly one fenced block:`,
+    "```seo-forge-changes",
+    `{"changes":[`,
+    `  {"type":"update_post","post_id":123,"title":"...","meta_description":"...","content_html":"...","rationale":"..."},`,
+    `  {"type":"new_post","title":"...","slug":"...","content_html":"...","meta_description":"...","rationale":"..."}`,
+    `]}`,
+    "```",
+    `Rules: valid JSON only inside the block; include only fields you are changing;`,
+    `content_html must be complete, publish-ready HTML. The SEO Forge platform turns each`,
+    `change into an approval card — a human reviews and applies it via the WordPress API.`,
+    `If your findings need no changes, just report them clearly and omit the block.`,
+  ].join("\n");
+}
+
 /** Create a Managed Agents session and send the kickoff message. */
 export async function startAgentSession(opts: {
   agent: AgentKey;
   title: string;
   kickoff: string;
-  /** Mount the website repo so the agent can push seo/* branches. */
-  mountRepo?: boolean;
+  /** The user's connected site — decides repo mount vs WordPress protocol. */
+  site?: Site | null;
+  /** Attach the change-delivery protocol (reviews/content runs). */
+  withChanges?: boolean;
 }) {
   const client = anthropic();
-  const repoFull = process.env.GITHUB_REPO || "Helsinki-Code/seo-forge";
-  const canMount = !!process.env.GITHUB_TOKEN && opts.mountRepo;
+  const site = opts.site;
+  const isGithub = !!site && (site.platform ?? "github") === "github" && !!site.github_repo;
+  const isWp = !!site && site.platform === "wordpress";
+
+  let mount = false;
+  let repoFull = "";
+  let token = "";
+  if (opts.withChanges && isGithub && site) {
+    try {
+      const { owner, repo } = siteRepoOf(site);
+      repoFull = `${owner}/${repo}`;
+      token = siteTokenOf(site);
+      mount = true;
+    } catch {
+      mount = false; // no token — agent can still review read-only via web
+    }
+  }
 
   const session = await client.beta.sessions.create({
     agent: AGENT_TEAM[opts.agent].id,
     environment_id: environmentId(),
     title: opts.title,
-    ...(canMount
+    ...(mount
       ? {
           resources: [
             {
               type: "github_repository" as const,
               url: `https://github.com/${repoFull}`,
-              authorization_token: process.env.GITHUB_TOKEN!,
+              authorization_token: token,
               mount_path: "/workspace/site",
             },
           ],
@@ -105,7 +145,9 @@ export async function startAgentSession(opts: {
       : {}),
   });
 
-  const kickoff = canMount ? opts.kickoff + branchProtocol(repoFull) : opts.kickoff;
+  let kickoff = opts.kickoff;
+  if (opts.withChanges && mount) kickoff += branchProtocol(repoFull);
+  else if (opts.withChanges && isWp && site) kickoff += wpProtocol(site.url);
   await client.beta.sessions.events.send(session.id, {
     events: [
       {

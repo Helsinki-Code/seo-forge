@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { PageHeader, StatusBadge, timeAgo } from "@/components/ui";
 import { consoleUrl, getSessionMessages } from "@/lib/agents";
+import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/lib/supabase";
-import type { AgentRun } from "@/lib/data";
+import { getUserSite, type AgentRun } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,18 @@ export default async function RunDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { userId } = await auth();
+  const { site } = await getUserSite(userId!);
+  if (!site) notFound();
 
   let run: AgentRun | null = null;
   try {
-    const { data } = await supabase().from("agent_runs").select("*").eq("id", id).single();
+    const { data } = await supabase()
+      .from("agent_runs")
+      .select("*")
+      .eq("id", id)
+      .eq("site_id", site.id)
+      .single();
     run = data as AgentRun;
   } catch {
     run = null;
@@ -70,12 +79,11 @@ export default async function RunDetailPage({
       </section>
 
       <p className="mt-6 text-xs text-fg-faint">
-        If this run pushed <code className="display">seo/*</code> branches, they become pull
-        requests in{" "}
+        Proposed changes from this run land in{" "}
         <Link href="/dashboard/approvals" className="text-primary hover:underline">
           Approvals
         </Link>{" "}
-        automatically (or hit &quot;Scan agent branches&quot; there).
+        automatically — PRs for GitHub sites, publish-gated change cards for WordPress.
       </p>
     </>
   );

@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-import { getKeywords, getSite, getSnapshots } from "@/lib/data";
+import { getKeywords, getSnapshots, getUserSite } from "@/lib/data";
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const { data: site } = await getSite();
-  const { data: keywords, demo } = await getKeywords(site?.id ?? "demo");
+  const { site, demo } = await getUserSite(userId);
+  if (!site) return NextResponse.json({ keywords: [], snapshots: [], demo });
+  const { data: keywords } = await getKeywords(site.id);
   const { data: snapshots } = await getSnapshots(keywords.map((k) => k.id));
   return NextResponse.json({ keywords, snapshots, demo });
 }
@@ -27,12 +28,17 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
+
+  const { site } = await getUserSite(userId);
+  if (!site || site.id === "demo") {
+    return NextResponse.json({ error: "Connect your website first." }, { status: 400 });
+  }
+
   try {
-    const { data: site } = await getSite();
     const { data, error } = await supabase()
       .from("keywords")
       .insert({
-        site_id: site?.id === "demo" ? null : site?.id,
+        site_id: site.id,
         keyword: parsed.data.keyword,
         target_url: parsed.data.targetUrl ?? null,
         priority: parsed.data.priority,

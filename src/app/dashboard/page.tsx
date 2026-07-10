@@ -11,17 +11,21 @@ import {
   TimelineItem,
   TimelineLine,
 } from "@/components/ui/timeline";
-import { getActivity, getApprovals, getKeywords, getRuns, getSite, getSnapshots } from "@/lib/data";
+import { auth } from "@clerk/nextjs/server";
+import ConnectPrompt from "@/components/ConnectPrompt";
+import { getActivity, getApprovals, getKeywords, getRuns, getSnapshots, getUserSite } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const { data: site } = await getSite();
-  const { data: keywords, demo } = await getKeywords(site?.id ?? "demo");
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+  const { data: keywords } = await getKeywords(site.id);
   const { data: snapshots } = await getSnapshots(keywords.map((k) => k.id));
-  const { data: runs } = await getRuns(6);
-  const { data: approvals } = await getApprovals("pending");
-  const { data: activity } = await getActivity(8);
+  const { data: runs } = await getRuns(site.id, 6);
+  const { data: approvals } = await getApprovals(site.id, "pending");
+  const { data: activity } = await getActivity(site.id, 8);
 
   const latestByKeyword = new Map<string, number | null>();
   for (const s of snapshots) latestByKeyword.set(s.keyword_id, s.position);
@@ -47,13 +51,13 @@ export default async function OverviewPage() {
     <>
       <PageHeader
         title="Mission Control"
-        subtitle={`${site?.url ?? "your site"} · agents on watch`}
+        subtitle={`${site.url} · agents on watch`}
       >
         <RunAgentButton
           agent="strategist"
           kind="full_review"
           label="Run full SEO review"
-          prompt={`Run a full autonomous SEO review of ${site?.url ?? "https://seoforge.online"}: crawl the site, run fresh SERP checks for priority keywords, identify the 3 highest-impact optimizations, and output an exact change plan for the ${site?.github_repo ?? "Helsinki-Code/seo-forge"} repository. Do not deploy anything — changes ship via human-approved pull requests.`}
+          prompt={`Run a full autonomous SEO review of ${site.url}: crawl the site, run fresh SERP checks for priority keywords, identify the 3 highest-impact optimizations, and deliver them via the change-delivery protocol. Nothing goes live without human approval.`}
         />
       </PageHeader>
 
@@ -71,15 +75,14 @@ export default async function OverviewPage() {
             </li>
             <li>
               Hit <strong className="text-fg">Run full SEO review</strong> (top right) — the
-              agent gets the website repo mounted and pushes proposed changes as{" "}
-              <code className="display">seo/*</code> branches.
+              agents review your site and prepare concrete changes.
             </li>
             <li>
-              Approve or reject the resulting PRs in{" "}
+              Approve or reject the proposals in{" "}
               <Link href="/dashboard/approvals" className="text-primary hover:underline">
                 Approvals
               </Link>{" "}
-              — merging deploys.
+              — approving ships them (PR merge or WordPress publish).
             </li>
           </ol>
         </div>

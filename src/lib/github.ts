@@ -1,21 +1,28 @@
 import { Octokit } from "octokit";
+import { decryptSecret } from "./crypto";
+import type { Site } from "./data";
 
-let cached: Octokit | null = null;
-export function octokit(): Octokit {
-  if (cached) return cached;
-  cached = new Octokit({ auth: process.env.GITHUB_TOKEN });
-  return cached;
-}
-
-export function siteRepo(): { owner: string; repo: string } {
-  const full = process.env.GITHUB_REPO || "Helsinki-Code/seo-forge";
+/** Per-site GitHub access: the user's own repo + their own (encrypted) token. */
+export function siteRepoOf(site: Site): { owner: string; repo: string } {
+  const full = site.github_repo || process.env.GITHUB_REPO || "";
   const [owner, repo] = full.split("/");
+  if (!owner || !repo) throw new Error("Site has no GitHub repository configured");
   return { owner, repo };
 }
 
-export async function listOpenPRs() {
-  const { owner, repo } = siteRepo();
-  const res = await octokit().rest.pulls.list({
+export function siteTokenOf(site: Site): string {
+  if (site.repo_token_enc) return decryptSecret(site.repo_token_enc);
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN; // platform-site fallback
+  throw new Error("Site has no GitHub token configured");
+}
+
+function octoFor(site: Site): Octokit {
+  return new Octokit({ auth: siteTokenOf(site) });
+}
+
+export async function listOpenPRs(site: Site) {
+  const { owner, repo } = siteRepoOf(site);
+  const res = await octoFor(site).rest.pulls.list({
     owner,
     repo,
     state: "open",
@@ -28,13 +35,12 @@ export async function listOpenPRs() {
     branch: pr.head.ref,
     url: pr.html_url,
     createdAt: pr.created_at,
-    additions: undefined as number | undefined,
   }));
 }
 
-export async function mergePR(prNumber: number) {
-  const { owner, repo } = siteRepo();
-  return octokit().rest.pulls.merge({
+export async function mergePR(site: Site, prNumber: number) {
+  const { owner, repo } = siteRepoOf(site);
+  return octoFor(site).rest.pulls.merge({
     owner,
     repo,
     pull_number: prNumber,
@@ -42,9 +48,9 @@ export async function mergePR(prNumber: number) {
   });
 }
 
-export async function closePR(prNumber: number) {
-  const { owner, repo } = siteRepo();
-  return octokit().rest.pulls.update({
+export async function closePR(site: Site, prNumber: number) {
+  const { owner, repo } = siteRepoOf(site);
+  return octoFor(site).rest.pulls.update({
     owner,
     repo,
     pull_number: prNumber,
@@ -54,20 +60,22 @@ export async function closePR(prNumber: number) {
 
 /**
  * The agent → PR bridge. Agents push `seo/*` branches (never PRs, never main);
- * this scans for agent branches with no open PR and opens one for each, so
- * every proposed change surfaces in the Approvals queue.
+ * this scans the user's repo for agent branches with no open PR and opens one
+ * for each, so every proposed change surfaces in the Approvals queue.
  */
-export async function syncAgentBranches(): Promise<
-  { branch: string; prNumber: number; title: string }[]
-> {
-  const { owner, repo } = siteRepo();
-  const gh = octokit();
+export async function syncAgentBranches(
+  site: Site,
+): Promise<{ branch: string; prNumber: number; title: string }[]> {
+  const { owner, repo } = siteRepoOf(site);
+  const gh = octoFor(site);
 
-  const [branches, openPRs] = await Promise.all([
+  const [branches, openPRs, repoInfo] = await Promise.all([
     gh.rest.repos.listBranches({ owner, repo, per_page: 100 }),
     gh.rest.pulls.list({ owner, repo, state: "open", per_page: 100 }),
+    gh.rest.repos.get({ owner, repo }),
   ]);
 
+  const base = repoInfo.data.default_branch;
   const withPR = new Set(openPRs.data.map((pr) => pr.head.ref));
   const candidates = branches.data
     .map((b) => b.name)
@@ -82,20 +90,20 @@ export async function syncAgentBranches(): Promise<
         owner,
         repo,
         head: branch,
-        base: "main",
+        base,
         title,
         body: [
           "Proposed by the SEO Forge agent team.",
           "",
           "Review the diff, then approve or reject from the SEO Forge Approvals",
-          "dashboard (or directly here). Merging deploys via the repo pipeline.",
+          "dashboard (or directly here). Merging deploys via your pipeline.",
           "",
           "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
         ].join("\n"),
       });
       created.push({ branch, prNumber: pr.data.number, title });
     } catch {
-      // branch may have no diff against main, or a race — skip
+      // branch may have no diff against base, or a race — skip
     }
   }
   return created;

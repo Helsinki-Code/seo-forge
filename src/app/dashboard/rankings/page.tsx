@@ -10,14 +10,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getKeywords, getSite, getSnapshots } from "@/lib/data";
+import { auth } from "@clerk/nextjs/server";
+import ConnectPrompt from "@/components/ConnectPrompt";
+import { getKeywords, getSnapshots, getUserSite } from "@/lib/data";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingsPage() {
-  const { data: site } = await getSite();
-  const { data: keywords, demo } = await getKeywords(site?.id ?? "demo");
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+  const { data: keywords } = await getKeywords(site.id);
   const { data: snapshots } = await getSnapshots(keywords.map((k) => k.id));
 
   const series = new Map<string, { position: number | null; checked_at: string }[]>();
@@ -50,7 +54,7 @@ export default async function RankingsPage() {
             kind="serp_check"
             label="Run SERP sweep"
             compact
-            prompt={`Run a fresh SERP check for these keywords of ${site?.url ?? "https://seoforge.online"}: ${keywords
+            prompt={`Run a fresh SERP check for these keywords of ${site.url}: ${keywords
               .map((k) => k.keyword)
               .join(", ")}. For each: current top-10, our position if visible, SERP features, and any title/meta rewrite opportunity. Summarize movements clearly.`}
           />

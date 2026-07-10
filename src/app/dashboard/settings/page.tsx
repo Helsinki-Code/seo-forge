@@ -1,7 +1,10 @@
-import { CheckCircle2, XCircle } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Pencil, XCircle } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 import { PageHeader } from "@/components/ui";
+import ConnectPrompt from "@/components/ConnectPrompt";
 import { AGENT_TEAM } from "@/lib/agents";
-import { getSite } from "@/lib/data";
+import { getUserSite } from "@/lib/data";
 import {
   Table,
   TableBody,
@@ -28,58 +31,94 @@ function EnvRow({ name, ok, hint }: { name: string; ok: boolean; hint: string })
 }
 
 export default async function SettingsPage() {
-  const { data: site, demo } = await getSite();
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+
+  const isGithub = (site.platform ?? "github") === "github";
   const env = {
     supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    supabaseSecret: !!process.env.SUPABASE_SECRET_KEY,
     anthropic: !!process.env.ANTHROPIC_API_KEY,
     anthropicEnv: !!process.env.ANTHROPIC_ENVIRONMENT_ID,
-    github: !!process.env.GITHUB_TOKEN,
     clerk: !!process.env.CLERK_SECRET_KEY,
     cron: !!process.env.CRON_SECRET,
+    webhook: !!process.env.ANTHROPIC_WEBHOOK_SIGNING_KEY,
+    encryption: !!process.env.CREDENTIALS_ENCRYPTION_KEY,
   };
 
   return (
     <>
-      <PageHeader title="Settings" subtitle="Connections, agent roster, and site configuration." />
+      <PageHeader title="Settings" subtitle="Your site connection, platform health, and the agent roster.">
+        <Link
+          href="/dashboard/connect"
+          className="inline-flex items-center gap-2 rounded-lg border border-edge bg-panel px-3.5 py-2 text-sm text-fg transition-colors duration-200 hover:border-edge-2"
+        >
+          <Pencil size={14} aria-hidden /> Edit connection
+        </Link>
+      </PageHeader>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="panel p-6">
-          <h2 className="mb-3 text-sm font-semibold">Site</h2>
+          <h2 className="mb-3 text-sm font-semibold">Your site</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="text-fg-mute">Name</dt>
-              <dd className="font-medium">{site?.name}</dd>
+              <dd className="font-medium">{site.name}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-fg-mute">URL</dt>
-              <dd className="font-medium">{site?.url}</dd>
+              <dd className="font-medium">{site.url}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-fg-mute">Website repo</dt>
-              <dd className="font-medium">{site?.github_repo ?? "—"}</dd>
+              <dt className="text-fg-mute">Platform</dt>
+              <dd className="font-medium capitalize">{site.platform ?? "github"}</dd>
             </div>
+            {isGithub ? (
+              <>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-fg-mute">Repository</dt>
+                  <dd className="font-medium">{site.github_repo ?? "—"}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-fg-mute">Access token</dt>
+                  <dd className={site.repo_token_enc ? "text-mint" : "text-amber"}>
+                    {site.repo_token_enc ? "configured (encrypted)" : "not set"}
+                  </dd>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-fg-mute">WP username</dt>
+                  <dd className="font-medium">{site.wp_username ?? "—"}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-fg-mute">Application password</dt>
+                  <dd className={site.wp_app_password_enc ? "text-mint" : "text-amber"}>
+                    {site.wp_app_password_enc ? "configured (encrypted)" : "not set"}
+                  </dd>
+                </div>
+              </>
+            )}
             <div className="flex justify-between gap-4">
               <dt className="text-fg-mute">Database</dt>
               <dd className={demo ? "text-amber" : "text-mint"}>
-                {demo ? "demo mode — run supabase/schema.sql" : "Supabase connected"}
+                {demo ? "demo mode — apply supabase schema" : "Supabase connected"}
               </dd>
             </div>
           </dl>
         </section>
 
         <section className="panel p-6">
-          <h2 className="mb-3 text-sm font-semibold">Connections</h2>
+          <h2 className="mb-3 text-sm font-semibold">Platform health</h2>
           <ul className="divide-y divide-edge">
             <EnvRow name="NEXT_PUBLIC_SUPABASE_URL" ok={env.supabaseUrl} hint="database" />
-            <EnvRow name="NEXT_PUBLIC_SUPABASE_ANON_KEY" ok={env.supabaseKey} hint="database" />
-            <EnvRow name="SUPABASE_SECRET_KEY" ok={env.supabaseSecret} hint="optional (RLS)" />
             <EnvRow name="ANTHROPIC_API_KEY" ok={env.anthropic} hint="agent team" />
             <EnvRow name="ANTHROPIC_ENVIRONMENT_ID" ok={env.anthropicEnv} hint="agent sessions" />
-            <EnvRow name="GITHUB_TOKEN" ok={env.github} hint="PR merge / deploys" />
             <EnvRow name="CLERK_SECRET_KEY" ok={env.clerk} hint="authentication" />
             <EnvRow name="CRON_SECRET" ok={env.cron} hint="scheduled reviews" />
+            <EnvRow name="ANTHROPIC_WEBHOOK_SIGNING_KEY" ok={env.webhook} hint="realtime status" />
+            <EnvRow name="CREDENTIALS_ENCRYPTION_KEY" ok={env.encryption} hint="secret storage" />
           </ul>
         </section>
       </div>

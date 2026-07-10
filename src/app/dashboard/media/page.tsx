@@ -2,12 +2,17 @@
 import { ImageIcon } from "lucide-react";
 import { DemoBanner, PageHeader, StatusBadge, timeAgo } from "@/components/ui";
 import MediaForm from "@/components/MediaForm";
-import { getMedia } from "@/lib/data";
+import { auth } from "@clerk/nextjs/server";
+import ConnectPrompt from "@/components/ConnectPrompt";
+import { getMedia, getUserSite } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function MediaPage() {
-  const { data: assets, demo } = await getMedia();
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+  const { data: assets } = await getMedia(site.id);
 
   return (
     <>

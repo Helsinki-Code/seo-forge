@@ -2,7 +2,9 @@ import Link from "next/link";
 import { DemoBanner, PageHeader, StatusBadge, timeAgo } from "@/components/ui";
 import RunAgentButton from "@/components/RunAgentButton";
 import Plan, { Task } from "@/components/ui/agent-plan";
-import { getRuns, getSite } from "@/lib/data";
+import { auth } from "@clerk/nextjs/server";
+import ConnectPrompt from "@/components/ConnectPrompt";
+import { getRuns, getUserSite } from "@/lib/data";
 import { FileText } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -62,11 +64,13 @@ const seoPlan: Task[] = [
 ];
 
 export default async function ContentPage() {
-  const { data: site } = await getSite();
-  const { data: runs, demo } = await getRuns(30);
+  const { userId } = await auth();
+  const { site, demo } = await getUserSite(userId!);
+  if (!site) return <ConnectPrompt />;
+  const { data: runs } = await getRuns(site.id, 30);
   const contentRuns = runs.filter((r) => ["content", "full_review"].includes(r.kind));
-  const url = site?.url ?? "https://seoforge.online";
-  const repo = site?.github_repo ?? "Helsinki-Code/seo-forge";
+  const url = site.url;
+  const repo = site.github_repo ?? site.url;
 
   return (
     <>

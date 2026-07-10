@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { consoleUrl, startAgentSession } from "@/lib/agents";
 import { supabase } from "@/lib/supabase";
-import { getSite, logActivity } from "@/lib/data";
+import { getUserSite, logActivity } from "@/lib/data";
 
 const Body = z.object({
   articleUrl: z.string().min(4).max(400),
@@ -20,10 +20,16 @@ export async function POST(req: NextRequest) {
   }
   const { articleUrl, notes } = parsed.data;
 
+  const { site } = await getUserSite(userId);
+  if (!site || site.id === "demo") {
+    return NextResponse.json({ error: "Connect your website first." }, { status: 400 });
+  }
+
   try {
     const session = await startAgentSession({
       agent: "imageGenerator",
-      title: `Media for ${articleUrl}`,
+      title: `Media for ${articleUrl} — ${site.name}`,
+      site,
       kickoff: [
         `Fetch and read the article at ${articleUrl} (use web_fetch).`,
         `Study its tone, style, structure, and existing imagery conventions.`,
@@ -36,18 +42,15 @@ export async function POST(req: NextRequest) {
         .join("\n"),
     });
 
-    const { data: site } = await getSite();
     try {
       await supabase().from("agent_runs").insert({
-        site_id: site?.id === "demo" ? null : site?.id,
+        site_id: site.id,
         agent_name: "Article Image Generator",
         session_id: session.id,
         kind: "media",
         status: "running",
       });
-      if (site && site.id !== "demo") {
-        await logActivity(site.id, "human", `Requested media generation for ${articleUrl}`);
-      }
+      await logActivity(site.id, "human", `Requested media generation for ${articleUrl}`);
     } catch {
       // DB not ready
     }

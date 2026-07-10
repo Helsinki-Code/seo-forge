@@ -5,6 +5,11 @@ export type Site = {
   name: string;
   url: string;
   github_repo: string | null;
+  user_id?: string | null;
+  platform?: "github" | "wordpress";
+  repo_token_enc?: string | null;
+  wp_username?: string | null;
+  wp_app_password_enc?: string | null;
 };
 export type Keyword = {
   id: string;
@@ -36,6 +41,8 @@ export type Approval = {
   detail: string | null;
   status: string;
   created_at: string;
+  payload?: Record<string, unknown> | null;
+  session_id?: string | null;
 };
 export type MediaAsset = {
   id: string;
@@ -77,6 +84,44 @@ export async function getSite() {
   });
 }
 
+/** The signed-in user's connected site (multi-tenant). null = not connected yet. */
+export async function getUserSite(
+  userId: string,
+): Promise<{ site: Site | null; demo: boolean }> {
+  try {
+    const { data, error } = await supabase()
+      .from("sites")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    if (error) throw error;
+    return { site: (data?.[0] as Site) ?? null, demo: false };
+  } catch {
+    // DB unreachable / schema missing — show demo so the UI stays alive
+    return {
+      site: {
+        id: "demo",
+        name: "SEO Forge (demo)",
+        url: "https://seoforge.online",
+        github_repo: "Helsinki-Code/seo-forge",
+        platform: "github",
+      },
+      demo: true,
+    };
+  }
+}
+
+export async function getSiteById(siteId: string): Promise<Site | null> {
+  try {
+    const { data, error } = await supabase().from("sites").select("*").eq("id", siteId).single();
+    if (error) throw error;
+    return data as Site;
+  } catch {
+    return null;
+  }
+}
+
 export async function getKeywords(siteId: string) {
   return safe<Keyword[]>(async () => {
     const { data, error } = await supabase()
@@ -102,11 +147,13 @@ export async function getSnapshots(keywordIds: string[]) {
   }, DEMO_SNAPSHOTS);
 }
 
-export async function getRuns(limit = 20) {
+export async function getRuns(siteId: string, limit = 20) {
   return safe<AgentRun[]>(async () => {
+    if (siteId === "demo") throw new Error("demo");
     const { data, error } = await supabase()
       .from("agent_runs")
       .select("*")
+      .eq("site_id", siteId)
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) throw error;
@@ -114,9 +161,10 @@ export async function getRuns(limit = 20) {
   }, DEMO_RUNS);
 }
 
-export async function getApprovals(status?: string) {
+export async function getApprovals(siteId: string, status?: string) {
   return safe<Approval[]>(async () => {
-    let q = supabase().from("approvals").select("*").order("created_at", { ascending: false }).limit(50);
+    if (siteId === "demo") throw new Error("demo");
+    let q = supabase().from("approvals").select("*").eq("site_id", siteId).order("created_at", { ascending: false }).limit(50);
     if (status) q = q.eq("status", status);
     const { data, error } = await q;
     if (error) throw error;
@@ -124,11 +172,13 @@ export async function getApprovals(status?: string) {
   }, DEMO_APPROVALS);
 }
 
-export async function getMedia() {
+export async function getMedia(siteId: string) {
   return safe<MediaAsset[]>(async () => {
+    if (siteId === "demo") throw new Error("demo");
     const { data, error } = await supabase()
       .from("media_assets")
       .select("*")
+      .eq("site_id", siteId)
       .order("created_at", { ascending: false })
       .limit(60);
     if (error) throw error;
@@ -136,11 +186,13 @@ export async function getMedia() {
   }, DEMO_MEDIA);
 }
 
-export async function getActivity(limit = 15) {
+export async function getActivity(siteId: string, limit = 15) {
   return safe<Activity[]>(async () => {
+    if (siteId === "demo") throw new Error("demo");
     const { data, error } = await supabase()
       .from("activity_log")
       .select("*")
+      .eq("site_id", siteId)
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) throw error;
