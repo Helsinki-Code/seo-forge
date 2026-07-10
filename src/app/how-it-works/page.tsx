@@ -10,12 +10,14 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "How it works — SEO Forge",
+export const metadata = pageMetadata({
+  title: "How it works",
   description:
     "How SEO Forge's autonomous agent team reviews your site, watches SERPs, optimizes content, and ships changes through human-approved pull requests.",
-};
+  path: "/how-it-works",
+});
 
 const steps = [
   {

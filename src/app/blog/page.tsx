@@ -2,11 +2,13 @@ import Link from "next/link";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { posts } from "@/lib/posts";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Blog — SEO Forge",
+export const metadata = pageMetadata({
+  title: "Blog",
   description: "Field notes on agentic SEO, SERP monitoring, and human-in-the-loop publishing.",
-};
+  path: "/blog",
+});
 
 export default function BlogIndexPage() {
   return (

@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Privacy Policy — SEO Forge" };
+export const metadata = pageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How SEO Forge collects, uses, and protects the data behind your account, rankings, and agent runs.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

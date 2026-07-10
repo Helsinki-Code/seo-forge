@@ -1,11 +1,13 @@
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import ContactForm from "@/components/ContactForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Contact — SEO Forge",
+export const metadata = pageMetadata({
+  title: "Contact",
   description: "Talk to the team behind the autonomous SEO agents.",
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

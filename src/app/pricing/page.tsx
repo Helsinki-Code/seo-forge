@@ -3,11 +3,13 @@ import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { SignUpButton, Show } from "@clerk/nextjs";
 import { Check } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Pricing — SEO Forge",
+export const metadata = pageMetadata({
+  title: "Pricing",
   description: "Simple plans for autonomous SEO with human-approved deploys.",
-};
+  path: "/pricing",
+});
 
 const tiers = [
   {

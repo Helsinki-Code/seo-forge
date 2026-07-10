@@ -1,11 +1,13 @@
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "About — SEO Forge",
+export const metadata = pageMetadata({
+  title: "About",
   description:
     "Why SEO Forge exists: search optimization is a continuous process, so we made it a continuous system.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
