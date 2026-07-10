@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
+  "/__clerk(.*)", // Clerk auto-proxy assets (clerk.browser.js etc.)
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
