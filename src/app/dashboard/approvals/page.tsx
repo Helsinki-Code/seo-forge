@@ -1,6 +1,7 @@
 import { GitPullRequest, ShieldCheck } from "lucide-react";
 import { DemoBanner, PageHeader, StatusBadge, timeAgo } from "@/components/ui";
 import ApprovalActions from "@/components/ApprovalActions";
+import SyncBranchesButton from "@/components/SyncBranchesButton";
 import { getApprovals } from "@/lib/data";
 import { listOpenPRs, siteRepo } from "@/lib/github";
 
@@ -25,7 +26,9 @@ export default async function ApprovalsPage() {
       <PageHeader
         title="Approvals"
         subtitle="You are the deploy gate. Approving a PR merges it — your pipeline takes it live."
-      />
+      >
+        <SyncBranchesButton />
+      </PageHeader>
       <DemoBanner demo={demo} />
 
       <section className="panel mb-6 p-6">

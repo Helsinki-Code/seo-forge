@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader, StatusBadge, timeAgo, DemoBanner } from "@/components/ui";
 import RunAgentButton from "@/components/RunAgentButton";
 import { AiLoader } from "@/components/ui/ai-agent-processing-states";
@@ -83,7 +84,10 @@ export default async function AgentsPage() {
               ) : (
                 lastRun && (
                   <p className="mb-4 line-clamp-2 text-xs text-fg-faint">
-                    Last: {lastRun.summary ?? lastRun.kind} · {timeAgo(lastRun.created_at)}
+                    Last: {lastRun.summary ?? lastRun.kind} · {timeAgo(lastRun.created_at)}{" "}
+                    <Link href={`/dashboard/runs/${lastRun.id}`} className="text-primary hover:underline">
+                      view →
+                    </Link>
                   </p>
                 )
               )}

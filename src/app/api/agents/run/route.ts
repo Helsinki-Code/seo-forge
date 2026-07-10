@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
       agent,
       title: `${AGENT_TEAM[agent].name} — ${kind}`,
       kickoff: prompt,
+      // Reviews and content work get the website repo mounted so concrete
+      // changes come back as seo/* branches → PRs → the Approvals queue.
+      mountRepo: ["full_review", "content", "deploy"].includes(kind),
     });
 
     const { data: site } = await getSite();

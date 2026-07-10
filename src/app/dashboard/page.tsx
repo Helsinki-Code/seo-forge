@@ -59,6 +59,32 @@ export default async function OverviewPage() {
 
       <DemoBanner demo={demo} />
 
+      {keywords.length === 0 && !demo && (
+        <div className="panel mb-6 border-primary/40 p-5">
+          <p className="text-sm font-semibold">Get the loop spinning — 3 steps</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-fg-mute">
+            <li>
+              <Link href="/dashboard/rankings" className="text-primary hover:underline">
+                Add your first keywords
+              </Link>{" "}
+              so the agents know what to rank for.
+            </li>
+            <li>
+              Hit <strong className="text-fg">Run full SEO review</strong> (top right) — the
+              agent gets the website repo mounted and pushes proposed changes as{" "}
+              <code className="display">seo/*</code> branches.
+            </li>
+            <li>
+              Approve or reject the resulting PRs in{" "}
+              <Link href="/dashboard/approvals" className="text-primary hover:underline">
+                Approvals
+              </Link>{" "}
+              — merging deploys.
+            </li>
+          </ol>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Target} label="Tracked keywords" value={String(keywords.length)} hint="across the site" />
         <StatCard icon={LineChart} label="Avg. position" value={String(avg)} hint="lower is better" tone="accent" />
@@ -108,10 +134,21 @@ export default async function OverviewPage() {
           {runs.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-3 py-3">
               <Bot size={15} className="text-primary" aria-hidden />
-              <span className="min-w-40 text-sm font-medium">{r.agent_name}</span>
+              <Link
+                href={`/dashboard/runs/${r.id}`}
+                className="min-w-40 text-sm font-medium transition-colors duration-200 hover:text-primary"
+              >
+                {r.agent_name}
+              </Link>
               <StatusBadge status={r.status} />
               <span className="flex-1 truncate text-xs text-fg-mute">{r.summary ?? r.kind}</span>
               <span className="text-xs text-fg-faint">{timeAgo(r.created_at)}</span>
+              <Link
+                href={`/dashboard/runs/${r.id}`}
+                className="text-xs text-primary hover:underline"
+              >
+                read findings →
+              </Link>
             </li>
           ))}
         </ul>

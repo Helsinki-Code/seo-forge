@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await startAgentSession({
       agent: "strategist",
+      mountRepo: true,
       title: `Scheduled SEO review — ${new Date().toISOString().slice(0, 10)}`,
       kickoff: [
         `Run a scheduled autonomous SEO review of ${siteUrl}.`,
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
         `2. Run fresh SERP checks for the site's priority keywords; record position movements and SERP-feature changes.`,
         `3. Identify the 3 highest-impact optimizations (titles, metas, internal links, content refreshes).`,
         `4. For each optimization, produce the exact file-level change needed in the ${repo} repository.`,
-        `5. Do NOT push or deploy anything. Output a clear change plan a human can approve; changes will be applied via pull request.`,
+        `5. Apply the highest-impact changes via the change-delivery protocol below (seo/* branches only — a human approves every merge).`,
         `Report findings as a concise summary: what moved, what you recommend, expected impact.`,
       ].join("\n"),
     });

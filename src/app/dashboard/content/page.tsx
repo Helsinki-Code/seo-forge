@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DemoBanner, PageHeader, StatusBadge, timeAgo } from "@/components/ui";
 import RunAgentButton from "@/components/RunAgentButton";
 import Plan, { Task } from "@/components/ui/agent-plan";
@@ -113,7 +114,12 @@ export default async function ContentPage() {
                   <StatusBadge status={r.status} />
                 </div>
                 <p className="text-xs text-fg-mute">{r.summary ?? r.kind}</p>
-                <p className="text-[11px] text-fg-faint">{timeAgo(r.created_at)}</p>
+                <p className="text-[11px] text-fg-faint">
+                  {timeAgo(r.created_at)}{" "}
+                  <Link href={`/dashboard/runs/${r.id}`} className="text-primary hover:underline">
+                    read findings →
+                  </Link>
+                </p>
               </li>
             ))}
           </ul>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { anthropic } from "@/lib/agents";
 import { supabase } from "@/lib/supabase";
 import { getSite, logActivity } from "@/lib/data";
+import { syncAgentBranches, siteRepo } from "@/lib/github";
 
 /**
  * Anthropic Managed Agents webhook receiver.
@@ -67,6 +68,32 @@ export async function POST(req: NextRequest) {
         "agent",
         `Session ${sessionId.slice(0, 14)}… → ${mapped.status}`,
       );
+    }
+
+    // When a run finishes, bridge any agent-pushed seo/* branches into PRs
+    // so they surface in the Approvals queue automatically.
+    if (mapped.finished && process.env.GITHUB_TOKEN) {
+      try {
+        const created = await syncAgentBranches();
+        const { owner, repo } = siteRepo();
+        for (const c of created) {
+          await supabase().from("approvals").insert({
+            site_id: site?.id === "demo" ? null : site?.id,
+            title: c.title,
+            kind: "pr",
+            repo: `${owner}/${repo}`,
+            pr_number: c.prNumber,
+            detail: `Agent branch ${c.branch} — review the diff, then approve to merge & deploy.`,
+            status: "pending",
+            session_id: sessionId,
+          });
+          if (site && site.id !== "demo") {
+            await logActivity(site.id, "agent", `Opened PR #${c.prNumber}: ${c.title}`);
+          }
+        }
+      } catch {
+        // bridge is best-effort; manual sync button exists on Approvals
+      }
     }
   } catch {
     // DB not ready — acknowledge anyway so Anthropic doesn't retry forever

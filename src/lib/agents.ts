@@ -59,27 +59,85 @@ export function environmentId(): string {
   return id;
 }
 
+/** Branch protocol appended when the website repo is mounted in a session. */
+export function branchProtocol(repo: string): string {
+  return [
+    ``,
+    `--- CHANGE-DELIVERY PROTOCOL (mandatory) ---`,
+    `The website repository (${repo}) is mounted at /workspace/site with push access.`,
+    `When you have concrete file-level changes:`,
+    `1. cd /workspace/site && git checkout -b seo/<short-kebab-slug> (one branch per coherent change set)`,
+    `2. Apply the changes, commit with a clear message explaining the SEO rationale, and push the branch.`,
+    `3. Do NOT open a pull request and do NOT push to main — the SEO Forge platform`,
+    `   detects seo/* branches, opens the PR, and a human approves the merge.`,
+    `4. End your run with a short summary: branches pushed, files changed, expected impact.`,
+    `If your findings need no file changes, just report them clearly.`,
+  ].join("\n");
+}
+
 /** Create a Managed Agents session and send the kickoff message. */
 export async function startAgentSession(opts: {
   agent: AgentKey;
   title: string;
   kickoff: string;
+  /** Mount the website repo so the agent can push seo/* branches. */
+  mountRepo?: boolean;
 }) {
   const client = anthropic();
+  const repoFull = process.env.GITHUB_REPO || "Helsinki-Code/seo-forge";
+  const canMount = !!process.env.GITHUB_TOKEN && opts.mountRepo;
+
   const session = await client.beta.sessions.create({
     agent: AGENT_TEAM[opts.agent].id,
     environment_id: environmentId(),
     title: opts.title,
+    ...(canMount
+      ? {
+          resources: [
+            {
+              type: "github_repository" as const,
+              url: `https://github.com/${repoFull}`,
+              authorization_token: process.env.GITHUB_TOKEN!,
+              mount_path: "/workspace/site",
+            },
+          ],
+        }
+      : {}),
   });
+
+  const kickoff = canMount ? opts.kickoff + branchProtocol(repoFull) : opts.kickoff;
   await client.beta.sessions.events.send(session.id, {
     events: [
       {
         type: "user.message",
-        content: [{ type: "text", text: opts.kickoff }],
+        content: [{ type: "text", text: kickoff }],
       },
     ],
   });
   return session;
+}
+
+/** Text content of the agent's messages in a session (for the run detail view). */
+export async function getSessionMessages(sessionId: string): Promise<string[]> {
+  const client = anthropic();
+  const out: string[] = [];
+  try {
+    const events = await client.beta.sessions.events.list(sessionId);
+    type Block = { type: string; text?: string };
+    type Ev = { type: string; content?: Block[] };
+    for (const ev of (events.data ?? []) as unknown as Ev[]) {
+      if (ev.type === "agent.message" && Array.isArray(ev.content)) {
+        const text = ev.content
+          .filter((b) => b.type === "text" && b.text)
+          .map((b) => b.text)
+          .join("\n");
+        if (text.trim()) out.push(text);
+      }
+    }
+  } catch {
+    // session may be deleted or unreachable — caller handles empty
+  }
+  return out;
 }
 
 export function consoleUrl(sessionId: string): string {
