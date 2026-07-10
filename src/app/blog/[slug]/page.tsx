@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { getPost, posts } from "@/lib/posts";
+import { pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
@@ -15,8 +16,14 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const post = getPost(slug);
-  if (!post) return { title: "Post not found — SEO Forge" };
-  return { title: `${post.title} — SEO Forge`, description: post.description };
+  if (!post) return { title: "Post not found" };
+  return pageMetadata({
+    title: post.title,
+    description: post.description,
+    path: `/blog/${post.slug}`,
+    type: "article",
+    publishedTime: new Date(post.date).toISOString(),
+  });
 }
 
 export default async function BlogPostPage({
@@ -28,8 +35,30 @@ export default async function BlogPostPage({
   const post = getPost(slug);
   if (!post) notFound();
 
+  const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  const blogPostingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: new Date(post.date).toISOString(),
+    dateModified: new Date(post.date).toISOString(),
+    url: postUrl,
+    mainEntityOfPage: postUrl,
+    articleSection: post.tag,
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  };
+
   return (
     <main className="grid-fade min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
       <SiteHeader />
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-16">
         <Link href="/blog" className="text-xs text-primary hover:underline">
