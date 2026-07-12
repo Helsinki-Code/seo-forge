@@ -3,27 +3,66 @@ import { SignUpButton, Show } from "@clerk/nextjs";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { ArrowRight, Bot, GitPullRequest, LineChart, ShieldCheck } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Autonomous SEO Agent, Human-Approved Deploys",
+  description:
+    "SEO Forge's AI agent team reviews your site, tracks SERPs, and rewrites what underperforms — every change ships as a GitHub pull request you approve.",
+  path: "/",
+});
 
 const features = [
   {
     icon: Bot,
     title: "Autonomous agent team",
-    body: "Eight specialized agents review your site, analyze live SERPs, and optimize content around the clock.",
+    body: (
+      <>
+        <Link href="/about" className="text-primary hover:underline">
+          Eight specialized agents
+        </Link>{" "}
+        review your site, analyze live SERPs, and optimize content around the clock.
+      </>
+    ),
   },
   {
     icon: LineChart,
     title: "Rankings, watched constantly",
-    body: "Keyword positions and SERP features tracked over time, with every optimization tied to a measurable move.",
+    body: (
+      <>
+        Keyword positions and{" "}
+        <Link href="/blog/serp-monitoring-that-actually-drives-action" className="text-primary hover:underline">
+          SERP features tracked over time
+        </Link>
+        , with every optimization tied to a measurable move.
+      </>
+    ),
   },
   {
     icon: GitPullRequest,
     title: "Ship via pull request",
-    body: "Every change lands as a GitHub PR. Nothing goes live without your approval — one click merges and deploys.",
+    body: (
+      <>
+        Every change lands as a{" "}
+        <Link href="/how-it-works" className="text-primary hover:underline">
+          GitHub PR
+        </Link>
+        . Nothing goes live without your approval — one click merges and deploys.
+      </>
+    ),
   },
   {
     icon: ShieldCheck,
     title: "On-brand media, always",
-    body: "Images and assets generated to match the tone and style of the articles they belong to.",
+    body: (
+      <>
+        Images and assets generated to{" "}
+        <Link href="/blog/on-brand-images-at-scale" className="text-primary hover:underline">
+          match the tone and style
+        </Link>{" "}
+        of the articles they belong to.
+      </>
+    ),
   },
 ];
 
