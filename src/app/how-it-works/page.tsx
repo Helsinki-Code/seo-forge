@@ -10,12 +10,14 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "How it works — SEO Forge",
+export const metadata = pageMetadata({
+  title: "How it works",
   description:
     "How SEO Forge's autonomous agent team reviews your site, watches SERPs, optimizes content, and ships changes through human-approved pull requests.",
-};
+  path: "/how-it-works",
+});
 
 const steps = [
   {
@@ -60,9 +62,59 @@ const steps = [
   },
 ];
 
+const faqs = [
+  {
+    question: "Does the AI agent deploy changes to my website automatically?",
+    answer:
+      "No. Agents never push to production. Every proposed change — a title rewrite, an internal-linking pass, a new article — lands as a pull request on your website's GitHub repository. A human reviews the diff and decides whether to merge it.",
+  },
+  {
+    question: "How often does SEO Forge review my site and rankings?",
+    answer:
+      "A nightly cron job runs an autonomous review across your tracked keywords and site content, and you can trigger an on-demand review at any time. Each tracked keyword gets a fresh SERP analysis, not a cached snapshot.",
+  },
+  {
+    question: "Can I reject a change an agent proposes?",
+    answer:
+      "Yes. The Approvals queue lists every open pull request with one-click Approve & merge or Reject. Rejected changes aren't discarded silently — they're recorded so the agent team learns what you don't want repeated.",
+  },
+  {
+    question: "What does the eight-agent team actually cover?",
+    answer:
+      "Content Production Orchestrator, Primary Blogger, Product Marketing Context Builder, Site Architecture, SEO Content Strategy, SEO Content Writer, Article Image Generator, and Affiliate Product Research — each a separate, versioned agent rather than one general-purpose model doing everything.",
+  },
+  {
+    question: "Does SEO Forge guarantee higher rankings?",
+    answer:
+      "No. Search rankings are set by third-party search engines, not by SEO Forge. The agent team optimizes persistently toward better positions — sharper titles, cleaner technical SEO, more relevant content — but no tool can guarantee a specific ranking outcome.",
+  },
+  {
+    question: "What happens after a change goes live?",
+    answer:
+      "Rankings keep being watched post-deploy. Movements are annotated against the specific change that shipped, so you can see whether a merged PR actually moved the keyword it targeted, and the next review builds on that evidence.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.answer,
+    },
+  })),
+};
+
 export default function HowItWorksPage() {
   return (
     <main className="grid-fade min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <SiteHeader />
       <section className="mx-auto max-w-4xl px-6 pb-10 pt-16 text-center">
         <h1 className="text-4xl font-bold sm:text-5xl">
@@ -82,6 +134,17 @@ export default function HowItWorksPage() {
             <p className="text-sm leading-relaxed text-fg-mute">{s.body}</p>
           </div>
         ))}
+      </section>
+      <section className="mx-auto max-w-3xl px-6 pb-28">
+        <h2 className="mb-6 text-2xl font-bold">Frequently asked questions</h2>
+        <div className="space-y-4">
+          {faqs.map((f) => (
+            <div key={f.question} className="panel p-6">
+              <h3 className="text-sm font-semibold text-fg">{f.question}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-fg-mute">{f.answer}</p>
+            </div>
+          ))}
+        </div>
       </section>
       <SiteFooter />
     </main>

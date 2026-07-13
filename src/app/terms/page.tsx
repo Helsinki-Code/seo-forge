@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Terms of Service — SEO Forge" };
+export const metadata = pageMetadata({
+  title: "Terms of Service",
+  description:
+    "The terms governing SEO Forge's autonomous agent team, human-approved deploys, and no-ranking-guarantee policy.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (
