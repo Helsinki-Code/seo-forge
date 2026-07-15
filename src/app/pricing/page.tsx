@@ -3,7 +3,7 @@ import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { SignUpButton, Show } from "@clerk/nextjs";
 import { Check } from "lucide-react";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Pricing",
@@ -54,9 +54,36 @@ const tiers = [
   },
 ];
 
+const pricingJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: `${SITE_NAME} — Autonomous SEO Agent Team`,
+  description: "Simple plans for autonomous SEO with human-approved deploys.",
+  brand: {
+    "@type": "Brand",
+    name: SITE_NAME,
+  },
+  url: `${SITE_URL}/pricing`,
+  offers: tiers
+    .filter((t) => t.price.startsWith("$"))
+    .map((t) => ({
+      "@type": "Offer",
+      name: `${SITE_NAME} ${t.name}`,
+      description: t.tagline,
+      price: t.price.replace("$", ""),
+      priceCurrency: "USD",
+      url: `${SITE_URL}/pricing`,
+      availability: "https://schema.org/InStock",
+    })),
+};
+
 export default function PricingPage() {
   return (
     <main className="grid-fade min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd) }}
+      />
       <SiteHeader />
       <section className="mx-auto max-w-4xl px-6 pb-10 pt-16 text-center">
         <h1 className="text-4xl font-bold sm:text-5xl">

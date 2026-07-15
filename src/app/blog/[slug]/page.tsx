@@ -38,20 +38,32 @@ export default async function BlogPostPage({
   const relatedPosts = posts.filter((p) => p.slug !== post.slug);
 
   const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  const wordCount = post.body.join(" ").trim().split(/\s+/).length;
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.description,
+    image: [`${postUrl}/opengraph-image`],
     datePublished: new Date(post.date).toISOString(),
     dateModified: new Date(post.date).toISOString(),
     url: postUrl,
     mainEntityOfPage: postUrl,
     articleSection: post.tag,
+    wordCount,
+    author: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/favicon.ico`,
+      },
     },
   };
 
