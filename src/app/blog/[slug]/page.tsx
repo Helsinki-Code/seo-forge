@@ -35,6 +35,8 @@ export default async function BlogPostPage({
   const post = getPost(slug);
   if (!post) notFound();
 
+  const relatedPosts = posts.filter((p) => p.slug !== post.slug);
+
   const postUrl = `${SITE_URL}/blog/${post.slug}`;
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
@@ -80,7 +82,29 @@ export default async function BlogPostPage({
             </p>
           ))}
         </div>
-        <div className="panel mt-12 flex flex-wrap items-center justify-between gap-4 p-6">
+        {relatedPosts.length > 0 && (
+          <div className="mt-12 border-t border-edge pt-8">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-faint">
+              Related reading
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {relatedPosts.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/blog/${p.slug}`}
+                  className="panel block p-5 transition-colors duration-200 hover:border-primary/50"
+                >
+                  <span className="text-[11px] font-medium text-primary">{p.tag}</span>
+                  <h3 className="mt-1.5 text-sm font-semibold leading-snug text-fg">
+                    {p.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-fg-mute">{p.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="panel mt-8 flex flex-wrap items-center justify-between gap-4 p-6">
           <p className="text-sm font-medium">Want this running on your site?</p>
           <Link
             href="/how-it-works"
