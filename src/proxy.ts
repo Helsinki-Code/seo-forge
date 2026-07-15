@@ -12,6 +12,9 @@ const isPublicRoute = createRouteMatcher([
   "/pricing",
   "/blog(.*)",
   "/contact",
+  "/robots.txt", // Next.js metadata route — must stay crawlable by search engines
+  "/sitemap.xml", // Next.js metadata route — must stay crawlable by search engines
+  "/opengraph-image(.*)", // Next.js OG image metadata routes (root + /blog/[slug])
   "/api/contact",
   "/api/cron(.*)", // protected by CRON_SECRET instead of a user session
   "/api/webhooks(.*)", // protected by HMAC signature verification
