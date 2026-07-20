@@ -1,17 +1,8 @@
 import Link from "next/link";
-<<<<<<< HEAD
-import { pageMetadata } from "@/lib/seo";
-=======
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
->>>>>>> ad9802d (seo forge real upgrade)
 
-export const metadata = pageMetadata({
-  title: "Terms of Service",
-  description:
-    "The terms governing SEO Forge's autonomous agent team, human-approved deploys, and no-ranking-guarantee policy.",
-  path: "/terms",
-});
+export const metadata = { title: "Terms of Service — SEO Forge" };
 
 export default function TermsPage() {
   return (

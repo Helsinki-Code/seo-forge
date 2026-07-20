@@ -1,17 +1,8 @@
 import Link from "next/link";
-<<<<<<< HEAD
-import { pageMetadata } from "@/lib/seo";
-=======
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
->>>>>>> ad9802d (seo forge real upgrade)
 
-export const metadata = pageMetadata({
-  title: "Privacy Policy",
-  description:
-    "How SEO Forge collects, uses, and protects the data behind your account, rankings, and agent runs.",
-  path: "/privacy",
-});
+export const metadata = { title: "Privacy Policy — SEO Forge" };
 
 export default function PrivacyPage() {
   return (
