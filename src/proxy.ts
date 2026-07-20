@@ -1,30 +1,33 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/__clerk(.*)", // Clerk auto-proxy assets (clerk.browser.js etc.)
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/privacy",
-  "/terms",
-  "/how-it-works",
-  "/about",
-  "/pricing",
-  "/blog(.*)",
-  "/contact",
-  "/robots.txt", // Next.js metadata route — must stay crawlable by search engines
-  "/sitemap.xml", // Next.js metadata route — must stay crawlable by search engines
-  "/opengraph-image(.*)", // Next.js OG image metadata routes (root + /blog/[slug])
+/**
+ * Public APIs authenticate with their own purpose-built mechanism instead of a
+ * browser Clerk session. Every other API route remains Clerk-protected.
+ */
+const isPublicApiRoute = createRouteMatcher([
   "/api/contact",
-  "/api/cron(.*)", // protected by CRON_SECRET instead of a user session
-  "/api/webhooks(.*)", // protected by HMAC signature verification
-  "/api/mcp/ga4", // protected by a hashed, site-bound SEO Forge bearer token
+  "/api/cron(.*)", // CRON_SECRET
+  "/api/webhooks(.*)", // provider signature/HMAC verification
+  "/api/mcp/ga4", // hashed, site-bound SEOForge bearer token
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
+  const { pathname } = request.nextUrl;
+
+  // The customer control room always requires an authenticated Clerk session.
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    await auth.protect();
+    return;
+  }
+
+  // APIs are private by default. Only the explicitly listed routes above use
+  // their own authentication scheme.
+  if (pathname.startsWith("/api/") && !isPublicApiRoute(request)) {
     await auth.protect();
   }
+
+  // All non-dashboard website routes are public: platform, agents, solutions,
+  // use cases, integrations, resources, guides, comparisons, legal and blog.
 });
 
 export const config = {
