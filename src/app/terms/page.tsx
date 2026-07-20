@@ -1,51 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { AlertTriangle, BadgeCheck, CreditCard, GitPullRequest, Scale, ShieldCheck } from "lucide-react";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 
-export const metadata = { title: "Terms of Service — SEO Forge" };
+export const metadata: Metadata = { title: "Terms of Service", description: "Terms governing paid SEOForge access, connected websites, autonomous workflows and human-approved production changes." };
+const clauses = [
+  ["1", "Agreement and eligibility", "By creating an account, purchasing a subscription or using the service, you agree to these Terms and confirm that you can bind the customer organization. If you do not agree, do not use SEOForge."],
+  ["2", "The service", "SEOForge provides paid software for website research, content preparation, search optimization, evidence management, human review and authorized production delivery. Features and capacity depend on the purchased plan."],
+  ["3", "Accounts and connected systems", "You are responsible for account security, authorized users, connected websites, repositories, CMS installations and provider accounts. Grant only the permissions necessary and promptly revoke access that is no longer appropriate."],
+  ["4", "Human approval and production responsibility", "Agents may investigate, draft, validate and stage work. The customer remains responsible for reviewing and explicitly approving every production change. SEOForge does not bypass branch protection, CMS permissions or the product approval gate."],
+  ["5", "Subscriptions, capacity and payment", "There is no free trial or free product tier. Subscription charges, included capacity, billing interval and taxes are shown at checkout. Unless otherwise stated, subscriptions renew until cancelled. Usage is limited by plan entitlements and configured budgets."],
+  ["6", "Customer content and permissions", "You retain ownership of customer content. You grant SEOForge the limited rights needed to process it and provide the service. You confirm that you have the authority to connect, analyze, modify and publish to the relevant systems."],
+  ["7", "Acceptable use", "Do not use SEOForge to violate law, infringe rights, distribute malware, manipulate evidence, fabricate credentials or testimonials, bypass security, abuse providers or create deceptive search content. The Acceptable Use Policy forms part of these Terms."],
+  ["8", "Search and business outcomes", "Search engines, AI systems, audiences and third-party platforms are independent. SEOForge does not guarantee rank #1, indexing, traffic, citations, conversions or revenue. Forecasts and hypotheses are not measured outcomes."],
+  ["9", "Third-party services", "Repositories, CMS platforms, analytics, model providers and other integrations have their own terms and availability. SEOForge is not responsible for third-party changes, suspension, data quality or outages beyond its reasonable control."],
+  ["10", "Suspension and termination", "We may restrict access to protect the service, comply with law, address non-payment or investigate material violations. You may cancel according to the subscription controls. Post-termination access and deletion are governed by plan terms, law and the Privacy Policy."],
+  ["11", "Disclaimers and liability", "The service is provided on an as-available basis to the extent permitted by law. Specific warranties, liability exclusions and caps may also be stated in an order form or negotiated agreement. Nothing excludes liability that cannot legally be excluded."],
+  ["12", "Changes and contact", "We may update these Terms as the service or law changes. Material updates will be communicated through an appropriate service channel. Questions should be sent through the contact page."],
+] as const;
 
 export default function TermsPage() {
-  return (
-    <main className="marketing-shell min-h-screen"><SiteHeader /><article className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/" className="text-xs text-primary hover:underline">
-        ← seoforge.online
-      </Link>
-      <h1 className="mt-4 text-3xl font-bold">Terms of Service</h1>
-      <p className="mt-2 text-xs text-fg-faint">Last updated: July 10, 2026</p>
-
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-fg-mute">
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">The service</h2>
-          <p>
-            SEO Forge provides an AI-agent-powered SEO operations dashboard. Agents propose
-            website changes; changes only reach production after a human approves the
-            corresponding GitHub or WordPress production proposal.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">Your responsibilities</h2>
-          <p>
-            You are responsible for the websites you connect, the repositories you authorize,
-            and every change you approve. Review agent-proposed changes before merging.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">No ranking guarantees</h2>
-          <p>
-            Search rankings are determined by third-party search engines. SEO Forge optimizes
-            persistently toward better positions but cannot and does not guarantee any specific
-            ranking outcome.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">Liability</h2>
-          <p>
-            The service is provided &quot;as is&quot; without warranties. To the maximum extent
-            permitted by law, we are not liable for indirect or consequential damages arising
-            from use of the service.
-          </p>
-        </section>
-      </div>
-    </article><SiteFooter /></main>
-  );
+  return <main className="marketing-shell min-h-screen"><SiteHeader />
+    <header className="border-b border-edge bg-panel/35"><div className="mx-auto max-w-7xl px-6 py-16 sm:py-24"><div className="grid items-end gap-12 lg:grid-cols-[1fr_.55fr]"><div><p className="text-xs font-semibold uppercase tracking-[.2em] text-amber">Legal · Terms</p><h1 className="mt-5 text-balance text-5xl font-semibold leading-tight sm:text-7xl">The operating agreement behind the operating system.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-fg-mute">These Terms define paid access, connected-system responsibilities, the human production boundary and the outcomes SEOForge cannot promise.</p></div><div className="rounded-2xl border border-edge bg-ink p-6"><p className="text-xs text-fg-faint">Last updated</p><p className="mt-2 text-lg font-semibold">July 20, 2026</p><div className="mt-6 flex items-center gap-2 border-t border-edge pt-5 text-xs text-mint"><BadgeCheck size={15}/>Plain-language summary included below</div></div></div></div></header>
+    <section className="border-b border-edge"><div className="mx-auto grid max-w-7xl gap-4 px-6 py-10 sm:grid-cols-2 lg:grid-cols-4">{[[GitPullRequest,"People approve production"],[CreditCard,"Paid access only"],[Scale,"No ranking guarantees"],[ShieldCheck,"Scoped connections"]].map(([Icon,label])=><div key={String(label)} className="flex items-center gap-3 rounded-xl border border-edge bg-panel p-4 text-sm font-semibold"><Icon size={17} className="text-amber"/>{String(label)}</div>)}</div></section>
+    <section className="mx-auto max-w-5xl px-6 py-20"><div className="mb-14 rounded-2xl border border-amber/20 bg-amber/5 p-6"><div className="flex items-start gap-4"><AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber"/><div><p className="font-semibold">Important production boundary</p><p className="mt-2 text-sm leading-6 text-fg-mute">SEOForge can prepare changes, but authorization to connect a system and approval to publish a specific change are separate customer decisions. You remain responsible for reviewing what goes live.</p></div></div></div>
+      <div className="space-y-4">{clauses.map(([number,title,body])=><details key={number} className="group rounded-2xl border border-edge bg-panel px-6 py-5" open={number==="1"}><summary className="flex cursor-pointer list-none items-center gap-5"><span className="display flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber/25 text-xs text-amber">{number}</span><h2 className="flex-1 text-base font-semibold">{title}</h2><span className="text-amber transition group-open:rotate-45">+</span></summary><p className="ml-14 mt-5 border-t border-edge pt-5 text-sm leading-7 text-fg-mute">{body}</p></details>)}</div>
+      <div className="mt-12 flex flex-wrap gap-3 text-xs"><Link href="/privacy" className="rounded-full border border-edge px-4 py-2 text-fg-mute hover:text-primary">Privacy Policy</Link><Link href="/acceptable-use" className="rounded-full border border-edge px-4 py-2 text-fg-mute hover:text-primary">Acceptable Use</Link><Link href="/data-processing" className="rounded-full border border-edge px-4 py-2 text-fg-mute hover:text-primary">Data Processing</Link><Link href="/contact" className="rounded-full border border-primary/25 bg-primary/8 px-4 py-2 font-semibold text-primary">Contact SEOForge</Link></div>
+    </section><SiteFooter />
+  </main>;
 }

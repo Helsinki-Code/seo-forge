@@ -1,55 +1,36 @@
 import type { Metadata } from "next";
-import {
-  EvidenceSection,
-  FaqSection,
-  FeatureGrid,
-  FinalCta,
-  IntegrationSection,
-  MarketingShell,
-  MeasurementSection,
-  PageHero,
-  PipelineSection,
-  ProcessTimeline,
-  TrustStrip,
-} from "@/components/marketing/MarketingPage";
-import type { MarketingPageSpec } from "@/lib/marketing-pages";
+import Link from "next/link";
+import { ArrowRight, BarChart3, Bot, Code2, Database, GitBranch, Globe2, LineChart, Search, ShieldCheck, Sparkles, Workflow } from "lucide-react";
+import ApprovalSandbox from "@/components/marketing/ApprovalSandbox";
+import { PublicCard, PublicCta, PublicFaq, PublicHeading, PublicProofNotice, PublicSection, PublicShell } from "@/components/marketing/PublicPrimitives";
 
-export const metadata: Metadata = {
-  title: "SEOForge — Your autonomous content and search operations team",
-  description: "SEOForge researches, creates and continuously optimizes website content through two coordinated agent pipelines, with evidence, validation and explicit human approval before production.",
-  alternates: { canonical: "/" },
-};
+export const metadata: Metadata = { title: "SEOForge — Autonomous content and SEO operations", description: "SEOForge creates new website content, improves existing pages and prepares validated GitHub or WordPress changes for explicit human approval.", alternates: { canonical: "/" } };
 
-const home: MarketingPageSpec = {
-  path: "",
-  kind: "hub",
-  eyebrow: "Autonomous research. Human authority.",
-  title: "Your content and search teams never clock out.",
-  description: "SEOForge continuously discovers what your audience needs, creates website-native articles and media, improves existing pages, measures search outcomes, and prepares validated production changes for your approval.",
-  primaryCta: "Choose Your Plan",
-  primaryHref: "/pricing",
-  secondaryCta: "See How SEOForge Works",
-  secondaryHref: "/how-it-works",
-  features: [
-    { title: "Build the next content opportunity", body: "Research demand, competitors and site gaps before turning a validated opportunity into a brief, article, media package and publishing proposal." },
-    { title: "Improve what already exists", body: "Continuously monitor rankings, technical health, decay, cannibalization, links, competitors and citations to prioritize the next defensible improvement." },
-    { title: "Fit the website you already own", body: "The Site Experience Engineer learns your repository or WordPress structure, components, typography and publishing conventions before preparing changes." },
-    { title: "Operate under one Supervisor", body: "One orchestration layer controls schedules, budgets, conflicts, evidence standards, retries, approvals and post-deployment measurement." },
-    { title: "Review the exact production change", body: "Inspect diffs, content, media, provenance, screenshots, checks, expected impact, risk and rollback before granting authenticated approval." },
-    { title: "Measure outcomes without pretending", body: "Rankings, clicks and conversions are reported as observations; forecasts retain confidence ranges and agent hypotheses remain clearly labeled." },
-  ],
-  steps: ["Connect a GitHub repository or WordPress site", "Connect Search Console, GA4 and research providers", "Complete ownership, permission and readiness checks", "Capture a source-stamped baseline", "Run both autonomous pipelines on schedule", "Review an evidence-backed production proposal", "Approve the exact change in SEOForge", "Measure, retain, iterate or prepare a revert"],
-  integrations: ["GitHub", "WordPress", "Search Console", "GA4", "DataForSEO", "Bing", "Slack", "Remote MCP"],
-  faqs: [
-    { question: "Does SEOForge publish without asking me?", answer: "No. Agents can investigate, draft, validate and stage changes, but production publication requires explicit authenticated approval and all configured repository or CMS controls." },
-    { question: "Is this only a content optimizer?", answer: "No. Content Growth creates the next body of useful content while Search Optimization improves the existing site. Both operate continuously under one Supervisor." },
-    { question: "Does SEOForge guarantee position one?", answer: "No platform controls a search engine. SEOForge makes rank improvement an objective, records evidence and measures results without guaranteeing a position." },
-    { question: "Can it create and manage a new blog?", answer: "Yes. The managed-blog workflow can prepare a website-native blog experience, publishing structure, articles and media for GitHub-based sites or supported WordPress installations." },
-    { question: "Is there a free trial?", answer: "No. SEOForge is a paid operational product because every workspace reserves provider, model, crawling, storage and agent capacity from the first run." },
-  ],
-  related: [{ href: "/platform", label: "Explore the platform" }, { href: "/agents", label: "Meet the four agents" }, { href: "/pricing", label: "Compare paid plans" }],
-};
+const faqs: Array<[string,string]> = [
+  ["Does SEOForge publish without asking me?", "No. Agents research, draft, implement and validate, but production requires an explicit authenticated approval of the exact change."],
+  ["Is SEOForge only an AI writer?", "No. Content Growth creates new articles and media while Search Optimization continuously improves existing content, technical health, links, rankings and AI visibility."],
+  ["Can SEOForge guarantee number one?", "No. Search engines control rankings. SEOForge continuously improves controllable inputs and measures outcomes without guaranteeing a position."],
+  ["Can it work with my existing website?", "The Site Experience Engineer first validates the GitHub repository or WordPress installation, design system, publishing model and production controls."],
+  ["Is there a free trial?", "No. SEOForge is a paid operational product because crawling, providers, models, storage and agent capacity are reserved from activation."],
+];
 
 export default function HomePage() {
-  return <MarketingShell><PageHero page={home} /><TrustStrip /><PipelineSection /><FeatureGrid features={home.features} /><ProcessTimeline steps={home.steps} /><EvidenceSection /><MeasurementSection /><IntegrationSection integrations={home.integrations} /><FaqSection faqs={home.faqs} /><FinalCta /></MarketingShell>;
+  return <PublicShell>
+    <section className="marketing-hero relative border-b border-edge/80"><div className="mx-auto grid max-w-7xl items-center gap-14 px-6 py-16 lg:grid-cols-[1.02fr_.98fr] lg:py-24"><div><p className="marketing-kicker"><span />Autonomous research. Human authority.</p><h1 className="mt-6 text-balance text-4xl font-semibold leading-[1.02] sm:text-6xl lg:text-7xl">Your AI content and SEO team works while you sleep.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-fg-mute">SEOForge creates new content, improves existing pages and prepares production-ready GitHub or WordPress changes. You review every change before it goes live.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/pricing" className="marketing-button marketing-button-primary">Choose Your Plan <ArrowRight size={16}/></Link><Link href="/how-it-works" className="marketing-button marketing-button-secondary">See the Team Working</Link></div><p className="mt-6 flex items-center gap-2 text-xs text-fg-faint"><ShieldCheck size={14} className="text-mint"/>Paid plans only · overages off by default · no rank-one guarantee</p></div><div className="marketing-card p-5"><div className="rounded-xl border border-primary/25 bg-primary/8 p-4 text-center"><Workflow size={18} className="mx-auto text-primary"/><p className="mt-3 text-xs font-semibold">Workflow Supervisor</p><p className="mt-1 text-[10px] text-fg-faint">priorities · budgets · heartbeats · conflicts</p></div><div className="mx-auto h-6 w-px bg-edge"/><div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl border border-amber/25 bg-amber/7 p-4"><Sparkles size={18} className="text-amber"/><p className="mt-8 text-sm font-semibold">Content Growth</p><p className="mt-1 text-[11px] text-fg-faint">opportunity → brief → article → media</p></div><div className="rounded-xl border border-primary/25 bg-primary/7 p-4"><Search size={18} className="text-primary"/><p className="mt-8 text-sm font-semibold">Search Optimization</p><p className="mt-1 text-[11px] text-fg-faint">monitor → diagnose → improve → measure</p></div></div><div className="mx-auto h-6 w-px bg-edge"/><div className="rounded-xl border border-mint/25 bg-mint/7 p-4 text-center"><Code2 size={18} className="mx-auto text-mint"/><p className="mt-3 text-xs font-semibold">Site Experience Engineer</p><p className="mt-1 text-[10px] text-fg-faint">website-native proposal → human approval → production</p></div></div></div></section>
+
+    <PublicSection><PublicHeading eyebrow="Two permanent pipelines" title="New growth and existing performance get separate owners." body="One pipeline finds and creates the next useful page. The other protects and compounds the value already published. The Supervisor prevents overlap and keeps both within budget."/><div className="mt-12 grid gap-5 lg:grid-cols-2"><div className="marketing-card p-8"><span className="preview-icon bg-amber/10 text-amber"><Sparkles size={19}/></span><h2 className="mt-7 text-2xl font-semibold">Content Growth</h2><p className="mt-3 text-sm leading-6 text-fg-mute">Research demand, qualify gaps, build clusters, create source-backed articles, generate useful media and prepare a publishing proposal.</p><div className="mt-7 grid grid-cols-2 gap-2">{["Keyword opportunity","Content brief","Article draft","Media manifest"].map(x=><span key={x} className="rounded-lg border border-edge bg-panel px-3 py-2 text-xs">{x}</span>)}</div><Link href="/platform/content-growth" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-amber">Explore Content Growth <ArrowRight size={14}/></Link></div><div className="marketing-card p-8"><span className="preview-icon bg-primary/10 text-primary"><Search size={19}/></span><h2 className="mt-7 text-2xl font-semibold">Search Optimization</h2><p className="mt-3 text-sm leading-6 text-fg-mute">Watch rankings, technical health, decay, cannibalization, competitors, links, backlinks and citations, then prepare the smallest supported improvement.</p><div className="mt-7 grid grid-cols-2 gap-2">{["Rank observation","Evidence bundle","Prioritized finding","Optimization proposal"].map(x=><span key={x} className="rounded-lg border border-edge bg-panel px-3 py-2 text-xs">{x}</span>)}</div><Link href="/platform/search-optimization" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-primary">Explore Search Optimization <ArrowRight size={14}/></Link></div></div></PublicSection>
+
+    <PublicSection muted><div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]"><div><PublicHeading eyebrow="Production delivery" title="GitHub or WordPress—never a disconnected document." body="The Site Experience Engineer understands the authorized website, fits content and code to its real structure, validates the result and prepares the exact production change."/><div className="mt-8 flex gap-3"><span className="flex items-center gap-2 rounded-full border border-edge bg-panel px-4 py-2 text-xs"><GitBranch size={14} className="text-primary"/>GitHub App</span><span className="flex items-center gap-2 rounded-full border border-edge bg-panel px-4 py-2 text-xs"><Globe2 size={14} className="text-primary"/>WordPress</span></div></div><div className="grid gap-4 sm:grid-cols-2">{[[Code2,"Framework and theme detection","Routes, content models, typography, components and build commands."],[GitBranch,"Production proposal","Protected branch or WordPress change with provenance and rollback."],[ShieldCheck,"Validation","Build, links, metadata, schema, screenshots and smoke checks."],[LineChart,"Observation","Deployment annotation, crawl validation and search outcome window."]].map(([I,t,b])=><PublicCard key={t as string} icon={I as typeof Code2} title={t as string} body={b as string}/>)}</div></div></PublicSection>
+
+    <PublicSection><PublicHeading eyebrow="Human approval demonstration" title="See the diff, evidence, risk and rollback before deciding." body="The agents cannot approve themselves. Voice, API, CLI, MCP, schedules and webhooks cannot replace the authenticated UI decision."/><div className="mt-10"><ApprovalSandbox/></div></PublicSection>
+
+    <PublicSection muted><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><PublicHeading eyebrow="Mission Control" title="Watch real work—not an animation pretending to be an agent." body="The live console exposes the active specialist, current URL or query, tool, evidence, concise decision summary, usage reservation, retries, failures and recovery state."/><div className="overflow-hidden rounded-2xl border border-edge bg-[#07090d]"><div className="flex items-center justify-between border-b border-edge px-5 py-3"><span className="font-mono text-[10px] text-fg-faint">run_sf_1842 · illustrative UI</span><span className="rounded-full bg-mint/10 px-3 py-1 text-[10px] text-mint">investigating</span></div><div className="space-y-1 p-5 font-mono text-[11px]">{[["20:41:03","SUPERVISOR","assigned ranking-loss investigation"],["20:41:09","DATAFORSEO","captured current mobile SERP"],["20:41:22","SEARCH AGENT","matched deployment annotation"],["20:42:01","EVIDENCE","3 source observations attached"],["20:42:18","POLICY","production authority remains locked"]].map(([t,a,e])=><div key={t} className="grid grid-cols-[4.5rem_6rem_1fr] gap-2 rounded px-2 py-2.5 hover:bg-white/[.03]"><span className="text-fg-faint">{t}</span><span className="text-primary">{a}</span><span className="text-fg-mute">{e}</span></div>)}</div></div></div></PublicSection>
+
+    <PublicSection><PublicHeading eyebrow="Connected evidence" title="Publishing and measurement stay in the same operating loop." center/><div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{[[GitBranch,"GitHub"],[Globe2,"WordPress"],[Search,"Search Console"],[BarChart3,"GA4"],[Database,"DataForSEO"],[Bot,"Remote MCP"]].map(([I,t])=><div key={t as string} className="marketing-card p-5 text-center"><I size={19} className="mx-auto text-primary"/><p className="mt-5 text-xs font-semibold">{t as string}</p><p className="mt-1 text-[10px] text-fg-faint">scope verified</p></div>)}</div></PublicSection>
+
+    <PublicSection muted><div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]"><PublicHeading eyebrow="Measured outcomes" title="Observations, forecasts and hypotheses are labeled differently." body="SEOForge ties rankings, clicks, sessions, conversions and AI visibility observations to production annotations without pretending it controls a search engine."/><div className="marketing-card p-7"><div className="flex items-center justify-between"><p className="text-sm font-semibold">Illustrative visibility window</p><span className="text-[10px] text-fg-faint">not customer results</span></div><div className="mt-8 flex h-44 items-end gap-2 border-b border-l border-edge px-4">{[27,33,31,42,48,46,58,64,61,72,78,82].map((h,i)=><span key={i} className="flex-1 rounded-t bg-primary/70" style={{height:`${h}%`}}/>)}</div></div></div></PublicSection>
+
+    <PublicSection><div className="grid gap-8 lg:grid-cols-[1fr_.8fr]"><div><PublicHeading eyebrow="Customer evidence" title="Proof appears only after it is real." body="Until verified customer baselines and observation periods exist, this website will not manufacture counters, testimonials, logos or ranking claims."/><div className="mt-8"><PublicProofNotice/></div></div><div className="marketing-card p-7"><p className="text-[10px] uppercase tracking-[.18em] text-fg-faint">Pricing preview</p><p className="mt-5 text-3xl font-semibold">From $149<span className="text-sm font-normal text-fg-faint">/month</span></p><p className="mt-3 text-sm leading-6 text-fg-mute">Every paid plan includes all four agents, both pipelines and explicit production approval. Capacity scales by site, tracked query, content, media and concurrency.</p><Link href="/pricing" className="marketing-button marketing-button-primary mt-7 w-full">Compare paid plans <ArrowRight size={15}/></Link></div></div></PublicSection>
+    <PublicFaq items={faqs}/><PublicCta title="Put both SEO pipelines to work on your website." body="Subscribe first, complete readiness checks, connect authorized providers and keep every production decision in your hands."/>
+  </PublicShell>;
 }

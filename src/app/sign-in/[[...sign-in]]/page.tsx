@@ -1,21 +1,12 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
+import { Activity, ArrowLeft, ShieldCheck, Workflow } from "lucide-react";
 
-export const metadata = { title: "Sign in — SEO Forge" };
+export const metadata = { title: "Sign in — SEOForge", description: "Sign in to SEOForge Mission Control." };
 
 export default function SignInPage() {
-  return (
-    <main className="grid-fade flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-12">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber" aria-hidden />
-        <span className="display text-lg font-semibold">
-          SEO<span className="text-primary">Forge</span>
-        </span>
-      </Link>
-      <SignIn />
-      <p className="text-xs text-fg-faint">
-        Your agents kept working while you were away.
-      </p>
-    </main>
-  );
+  return <main className="marketing-shell grid min-h-screen lg:grid-cols-[1.05fr_.95fr]">
+    <section className="marketing-hero hidden border-r border-edge p-10 lg:flex lg:flex-col lg:justify-between"><Link href="/" className="flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/30 bg-primary/12 font-semibold text-primary">S</span><span className="display font-semibold">SEO<span className="text-primary">Forge</span></span></Link><div className="max-w-xl"><p className="marketing-kicker"><span/>Mission Control</p><h1 className="mt-6 text-5xl font-semibold leading-tight">Return to the work already in motion.</h1><p className="mt-5 text-base leading-7 text-fg-mute">Review active investigations, inspect evidence and decide which validated proposals deserve production.</p><div className="mt-10 grid grid-cols-2 gap-3"><div className="rounded-2xl border border-edge bg-panel p-5"><Activity size={18} className="text-mint"/><p className="mt-7 text-sm font-semibold">Live operations</p><p className="mt-2 text-xs text-fg-faint">Runs, tools, retries and usage</p></div><div className="rounded-2xl border border-edge bg-panel p-5"><Workflow size={18} className="text-primary"/><p className="mt-7 text-sm font-semibold">Approval stack</p><p className="mt-2 text-xs text-fg-faint">Exact production decisions</p></div></div></div><p className="flex items-center gap-2 text-xs text-fg-faint"><ShieldCheck size={14} className="text-mint"/>A session never grants automatic publication authority.</p></section>
+    <section className="flex flex-col items-center justify-center px-6 py-12"><Link href="/" className="mb-8 inline-flex items-center gap-2 self-start text-xs text-fg-faint hover:text-primary lg:hidden"><ArrowLeft size={13}/>SEOForge home</Link><div className="w-full max-w-md"><div className="mb-7 text-center"><p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Authenticated access</p><h2 className="mt-3 text-2xl font-semibold">Sign in to Mission Control</h2></div><SignIn /><p className="mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-fg-faint">Need to start a new subscription? <Link href="/pricing" className="font-semibold text-primary hover:underline">Choose a paid plan</Link>. SEOForge has no free trial.</p></div></section>
+  </main>;
 }

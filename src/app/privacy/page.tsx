@@ -1,55 +1,34 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Database, EyeOff, KeyRound, LockKeyhole, RefreshCcw, UserRoundCheck } from "lucide-react";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 
-export const metadata = { title: "Privacy Policy — SEO Forge" };
+export const metadata: Metadata = { title: "Privacy Policy", description: "How SEOForge collects, uses, protects and deletes account, website and workflow data." };
+const updated="July 20, 2026";
+
+const lifecycle = [
+  [Database,"Collected","Account and workspace records, configuration, authorized provider data, evidence, workflow state, approvals, usage and operational logs."],
+  [LockKeyhole,"Protected","Tenant isolation, scoped provider permissions, encryption, secret redaction and audited production actions protect the working set."],
+  [RefreshCcw,"Retained","Records remain only as needed to operate the service, meet contractual or legal duties, investigate abuse and support customer-controlled history."],
+  [EyeOff,"Deleted","Customers may request deletion subject to legitimate security, billing, dispute and legal-retention requirements."],
+] as const;
 
 export default function PrivacyPage() {
-  return (
-    <main className="marketing-shell min-h-screen"><SiteHeader /><article className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/" className="text-xs text-primary hover:underline">
-        ← seoforge.online
-      </Link>
-      <h1 className="mt-4 text-3xl font-bold">Privacy Policy</h1>
-      <p className="mt-2 text-xs text-fg-faint">Last updated: July 10, 2026</p>
+  return <main className="marketing-shell min-h-screen"><SiteHeader />
+    <header className="border-b border-edge bg-gradient-to-b from-primary/8 to-transparent"><div className="mx-auto max-w-7xl px-6 py-16 sm:py-24"><div className="flex flex-wrap items-start justify-between gap-8"><div><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Legal · Privacy</p><h1 className="mt-5 text-5xl font-semibold sm:text-7xl">Your data has a job.<br/>It does not become our product.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-fg-mute">This policy explains the information SEOForge processes to operate autonomous search workflows, protect production access and measure usage.</p></div><div className="rounded-2xl border border-edge bg-panel p-5 text-xs text-fg-mute"><p className="font-semibold text-fg">Policy version</p><p className="mt-2">Last updated {updated}</p><p className="mt-1">Effective {updated}</p></div></div></div></header>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-fg-mute">
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">What we collect</h2>
-          <p>
-            SEOForge stores your account details, the keywords, rankings, agent
-            runs, approvals, and media records you create in the dashboard (in Supabase), and
-            operational logs needed to run the service.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">How it&apos;s used</h2>
-          <p>
-            Your data powers the autonomous SEO workflows you trigger: agent sessions on the
-            configured model providers, SERP analysis, content workflows, and authorized GitHub
-            or WordPress delivery. We do not sell your data or use it for advertising.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">Third-party services</h2>
-          <p>
-            SEOForge uses infrastructure, authentication, database, model, analytics,
-            repository, CMS and communications providers. The current subprocessor page
-            documents approved providers and their processing purposes.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">Your rights</h2>
-          <p>
-            You can export or delete your data at any time. Contact us and we&apos;ll action
-            deletion requests within 30 days.
-          </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-base font-semibold text-fg">Contact</h2>
-          <p>Questions? Reach the operator of seoforge.online via the site&apos;s contact channel.</p>
-        </section>
-      </div>
-    </article><SiteFooter /></main>
-  );
+    <section className="mx-auto max-w-7xl px-6 py-16"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{lifecycle.map(([Icon,title,body],index)=><article key={title} className="rounded-2xl border border-edge bg-panel p-5"><span className="flex items-center justify-between"><Icon size={18} className="text-primary"/><span className="text-[10px] text-fg-faint">0{index+1}</span></span><h2 className="mt-8 font-semibold">{title}</h2><p className="mt-3 text-xs leading-5 text-fg-mute">{body}</p></article>)}</div></section>
+
+    <div className="mx-auto grid max-w-7xl gap-12 px-6 pb-24 lg:grid-cols-[240px_minmax(0,1fr)]"><nav className="self-start rounded-2xl border border-edge bg-panel p-5 text-xs lg:sticky lg:top-28"><p className="font-semibold uppercase tracking-[.14em] text-fg-faint">Policy contents</p><div className="mt-5 space-y-3">{[["scope","Scope"],["collection","Information we collect"],["use","How we use it"],["providers","Providers and transfers"],["control","Your controls"],["security","Security and retention"],["contact","Contact"]].map(([id,label])=><a key={id} href={`#${id}`} className="block text-fg-mute hover:text-primary">{label}</a>)}</div></nav>
+      <article className="space-y-14 text-sm leading-7 text-fg-mute">
+        <section id="scope" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">1. Scope</h2><p className="mt-4">This policy applies to SEOForge websites, applications, APIs, MCP access, command-line tools and related support. A connected customer remains responsible for the website and source systems it authorizes. SEOForge acts only within the permissions and purposes configured for the service.</p></section>
+        <section id="collection" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">2. Information we collect</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{["Identity, workspace and subscription records","Authorized repository, CMS and provider configuration","Search, analytics and website observations","Agent runs, evidence, findings and proposals","Approval, deployment and audit events","Usage, device, security and support records"].map(item=><p key={item} className="rounded-xl border border-edge bg-panel p-4">{item}</p>)}</div><p className="mt-5">Repository and website content is processed as untrusted customer data. Raw credentials should never be entered into public forms or agent prompts.</p></section>
+        <section id="use" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">3. How we use information</h2><p className="mt-4">We use information to authenticate users; provide the requested crawl, research, content, optimization, review and delivery workflows; prevent abuse; enforce permissions and quotas; maintain reliability; process billing; deliver support; and meet legal obligations. We do not sell customer data or use it for third-party advertising.</p></section>
+        <section id="providers" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">4. Service providers and transfers</h2><p className="mt-4">SEOForge relies on vetted infrastructure, authentication, database, model, analytics, search-data, repository, CMS, storage, billing and communications providers. The <Link href="/subprocessors" className="text-primary hover:underline">subprocessor list</Link> describes current categories and purposes. Processing may occur in countries other than your own, subject to the contractual and legal safeguards applicable to the service.</p></section>
+        <section id="control" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">5. Your choices and rights</h2><div className="mt-5 rounded-2xl border border-mint/20 bg-mint/5 p-6"><UserRoundCheck size={20} className="text-mint"/><p className="mt-4">Depending on your location, you may have rights to access, correct, export, restrict or delete personal information and to object to certain processing. Workspace administrators can revoke providers and tokens. Contact us to make a request; identity verification may be required.</p></div></section>
+        <section id="security" className="scroll-mt-28"><h2 className="text-2xl font-semibold text-fg">6. Security, retention and incidents</h2><p className="mt-4">We use technical and organizational safeguards designed for a multi-tenant service, including scoped access, encryption, audit events and human-controlled production actions. No system is completely secure. Retention depends on record type, customer settings, contractual needs and legal requirements. If an incident requires customer notice, SEOForge will provide it through the appropriate account channel.</p></section>
+        <section id="contact" className="scroll-mt-28 rounded-2xl border border-primary/20 bg-primary/8 p-7"><KeyRound size={20} className="text-primary"/><h2 className="mt-5 text-2xl font-semibold text-fg">7. Questions or requests</h2><p className="mt-4">Use the <Link href="/contact" className="font-semibold text-primary hover:underline">contact form</Link> and identify the request as a privacy matter. Do not include passwords, private keys or provider credentials.</p></section>
+      </article></div><SiteFooter />
+  </main>;
 }

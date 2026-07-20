@@ -59,6 +59,67 @@ export async function closePR(site: Site, prNumber: number) {
 }
 
 /**
+ * Opens a real PR using the SITE OWNER'S OWN token (`siteTokenOf`), never
+ * the agent's own GitHub MCP connector. The Site Experience Engineer's MCP
+ * connector is authenticated by a single shared vault credential configured
+ * once at the platform level — it cannot be scoped per customer, so it can
+ * never safely have write access to an arbitrary customer's repo. The agent
+ * only ever reports the diff (as an `ImplementationProposal` artifact); the
+ * app performs the actual branch/commit/PR using the credential that's
+ * already correctly per-site, the same mechanism `mergePR`/`syncAgentBranches`
+ * above already use.
+ */
+export async function openProposalPR(
+  site: Site,
+  opts: {
+    branchName: string;
+    title: string;
+    body: string;
+    files: { path: string; newContent: string }[];
+  },
+): Promise<{ prNumber: number; url: string; branch: string }> {
+  const { owner, repo } = siteRepoOf(site);
+  const gh = octoFor(site);
+
+  const repoInfo = await gh.rest.repos.get({ owner, repo });
+  const base = repoInfo.data.default_branch;
+  const baseRef = await gh.rest.git.getRef({ owner, repo, ref: `heads/${base}` });
+  const baseSha = baseRef.data.object.sha;
+
+  await gh.rest.git.createRef({ owner, repo, ref: `refs/heads/${opts.branchName}`, sha: baseSha });
+
+  for (const file of opts.files) {
+    let existingSha: string | undefined;
+    try {
+      const existing = await gh.rest.repos.getContent({ owner, repo, path: file.path, ref: opts.branchName });
+      if (!Array.isArray(existing.data) && existing.data.type === "file") existingSha = existing.data.sha;
+    } catch {
+      // file doesn't exist yet on this branch — creating, not updating
+    }
+    await gh.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: file.path,
+      message: `${opts.title}\n\n${file.path}`,
+      content: Buffer.from(file.newContent, "utf8").toString("base64"),
+      branch: opts.branchName,
+      sha: existingSha,
+    });
+  }
+
+  const pr = await gh.rest.pulls.create({
+    owner,
+    repo,
+    head: opts.branchName,
+    base,
+    title: opts.title,
+    body: opts.body,
+  });
+
+  return { prNumber: pr.data.number, url: pr.data.html_url, branch: opts.branchName };
+}
+
+/**
  * The agent → PR bridge. The Site Experience Engineer pushes `seo-agent/*`
  * branches per its own persisted system prompt — it may or may not open the
  * PR itself via its GitHub MCP connector, so this handles both:

@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
-import { logActivity } from "./data";
+import { getSiteById, logActivity } from "./data";
+import { openProposalPR } from "./github";
 
 /**
  * Structured artifacts emitted by the specialist agents, per their own
@@ -123,6 +124,30 @@ async function findFindingIdByAsset(siteId: string, assetId: string | null): Pro
   return (data as { id: string } | null)?.id ?? null;
 }
 
+/** Extracts `{path, newContent}` per changed file from an ImplementationProposal's
+ * diff payload. Shape isn't pinned down by a real successful proposal yet
+ * (the one live diagnostic run got blocked before reaching this artifact) —
+ * accepts a few reasonable field-name variants, returns null if none match
+ * so the caller falls back to just recording the proposal without opening a PR. */
+function proposalFilesOf(a: ParsedArtifact): { path: string; newContent: string }[] | null {
+  const diff = (a.diff as unknown) ?? (a.diffSummary as unknown) ?? (a.repositoryPatch as unknown);
+  const raw = Array.isArray(diff)
+    ? diff
+    : diff && typeof diff === "object" && Array.isArray((diff as Record<string, unknown>).files)
+      ? (diff as Record<string, unknown>).files
+      : null;
+  if (!Array.isArray(raw)) return null;
+  const files: { path: string; newContent: string }[] = [];
+  for (const f of raw) {
+    if (!f || typeof f !== "object") continue;
+    const r = f as Record<string, unknown>;
+    const path = (r.path as string) ?? (r.filePath as string) ?? (r.file as string);
+    const newContent = (r.newContent as string) ?? (r.after as string) ?? (r.content as string);
+    if (path && typeof newContent === "string") files.push({ path, newContent });
+  }
+  return files.length > 0 ? files : null;
+}
+
 /** Content pipeline artifacts are keyed by the agent's own assetId — upsert
  * so later stages update the same row instead of creating a new one. Fields
  * omitted from `fields` are left untouched on an existing row (Postgres
@@ -152,9 +177,11 @@ async function upsertContentItem(
  * inserts a placeholder `approvals` row (kind "proposal", no pr_number yet)
  * so "proposal prepared" is visible as soon as a specialist hands work to
  * the Site Experience Engineer, not only once a PR exists; ImplementationProposal
- * → enriches that same row (matched by session_id) with diff/risk/rollback
- * fields, or inserts a new row if no placeholder/PR-bridge row exists yet;
- * ReadinessGap → activity log (it's the agent explaining why nothing else
+ * → for GitHub sites with real file content, opens the actual branch/PR
+ * itself via `openProposalPR` (the site owner's own token, never the agent's
+ * shared GitHub MCP connector) and enriches that same row (matched by
+ * session_id) with diff/risk/rollback/pr_number, or inserts a new row if no
+ * placeholder/PR-bridge row exists yet; ReadinessGap → activity log (it's the agent explaining why nothing else
  * was produced, not a dashboard row). ContentBrief/ArticleDraft/MediaRequest/
  * QualityReview/EditorialCalendarItem → upsert into `content_items`, keyed
  * by the artifact's own `assetId` (schema-v5) so later stages update the
@@ -241,7 +268,7 @@ export async function ingestArtifacts(
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        const reviewFields = {
+        const reviewFields: Record<string, unknown> = {
           diff_summary: a.diff ?? a.diffSummary ?? null,
           screenshots: a.screenshots ?? null,
           // Verified live: the field is `lighthouseComparison`, not `lighthouse`.
@@ -250,6 +277,47 @@ export async function ingestArtifacts(
           confidence: normalizeConfidence(a.confidence),
           rollback_plan: rollbackPlanTextOf(a),
         };
+
+        // Open the real PR ourselves, using the SITE OWNER'S OWN GitHub
+        // token (openProposalPR/siteTokenOf) — never the agent's own GitHub
+        // MCP connector, which is one shared credential across every
+        // customer and can't safely hold write access to an arbitrary repo.
+        // The agent's job ends at reporting the diff.
+        const files = proposalFilesOf(a);
+        if (files) {
+          const site = await getSiteById(siteId);
+          if (site && (site.platform ?? "github") === "github" && site.github_repo) {
+            try {
+              const assetId = assetIdOf(a);
+              const branchName = `seo-agent/${assetId ?? sessionId.slice(0, 12)}`;
+              const title = (a.title as string) ?? (a.decisionSummary as string) ?? "SEO Forge proposal";
+              const pr = await openProposalPR(site, {
+                branchName,
+                title,
+                body: [
+                  (a.decisionSummary as string) ?? "Proposed by the SEO Forge agent team.",
+                  "",
+                  "Review the diff, then approve or reject from the SEO Forge Production dashboard",
+                  "(or directly here). Merging deploys via your pipeline.",
+                ].join("\n"),
+                files,
+              });
+              reviewFields.pr_number = pr.prNumber;
+              reviewFields.repo = `${site.github_repo}`;
+              reviewFields.kind = "pr";
+              reviewFields.status = "pending";
+            } catch (e) {
+              // Couldn't open the PR (permissions, conflict, etc.) — still
+              // record the proposal below so the diff/review detail isn't lost.
+              await logActivity(
+                siteId,
+                "agent",
+                `Could not open PR for proposal: ${e instanceof Error ? e.message : "unknown error"}`,
+              );
+            }
+          }
+        }
+
         if (approval) {
           await supabase().from("approvals").update(reviewFields).eq("id", approval.id);
         } else {

@@ -1,0 +1,14 @@
+"use client";
+
+import { useState } from "react";
+import { BarChart3, Check, GitBranch, PlugZap, Search, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
+
+const steps: Array<{ title:string; body:string; evidence:string; icon:LucideIcon }> = [
+  { title:"Connect the website", body:"Select an authorized GitHub repository or connect a supported WordPress site.", evidence:"Ownership, permissions, publishing model and protection rules" ,icon:GitBranch},
+  { title:"Connect analytics", body:"Authorize the exact Search Console, GA4 and research properties the site may use.", evidence:"Provider scope, property ID, freshness and readiness",icon:PlugZap},
+  { title:"Establish brand and targets", body:"Approve the brand profile, markets, initial query portfolio, competitors, budgets and schedules.", evidence:"Versioned brand DNA, objectives and capacity reservation",icon:Search},
+  { title:"Both pipelines begin", body:"Content Growth creates new opportunities while Search Optimization investigates the existing site.", evidence:"Work orders, tools, sources, cost and current state",icon:Workflow},
+  { title:"Review production proposals", body:"Inspect evidence, article or code diff, preview, checks, expected impact, risk and rollback.", evidence:"Authenticated approve, reject, defer or request-changes decision",icon:ShieldCheck},
+  { title:"Measure the outcome", body:"Validate production, annotate deployment and observe rankings, traffic and conversions over the selected window.", evidence:"Measured result separated from forecast and hypothesis",icon:BarChart3},
+];
+export default function WorkflowTour(){const [active,setActive]=useState(0);const step=steps[active];const Icon=step.icon;return <div className="overflow-hidden rounded-2xl border border-edge bg-panel"><div className="grid lg:grid-cols-[.42fr_.58fr]"><div className="border-b border-edge p-3 lg:border-b-0 lg:border-r">{steps.map((s,i)=><button key={s.title} onClick={()=>setActive(i)} className={`mb-1 flex w-full items-center gap-3 rounded-xl p-3 text-left text-sm ${active===i?"bg-primary/10 text-fg":"text-fg-mute hover:bg-panel-2"}`}><span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] ${active===i?"bg-primary text-white":"border border-edge"}`}>{i+1}</span>{s.title}</button>)}</div><div className="p-7 sm:p-10"><span className="preview-icon h-12 w-12 bg-primary/10 text-primary"><Icon size={22}/></span><p className="mt-8 text-[10px] uppercase tracking-[.18em] text-fg-faint">Step {active+1} of 6</p><h3 className="mt-3 text-2xl font-semibold">{step.title}</h3><p className="mt-4 text-base leading-7 text-fg-mute">{step.body}</p><div className="mt-7 rounded-xl border border-mint/25 bg-mint/7 p-5"><p className="flex items-center gap-2 text-xs font-semibold text-mint"><Check size={14}/>What remains visible</p><p className="mt-2 text-sm leading-6 text-fg-mute">{step.evidence}</p></div></div></div></div>}

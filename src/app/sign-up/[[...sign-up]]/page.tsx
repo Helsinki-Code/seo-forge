@@ -1,21 +1,12 @@
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
+import { ArrowLeft, Check, CreditCard, GitBranch, ShieldCheck } from "lucide-react";
 
-export const metadata = { title: "Create account — SEO Forge" };
+export const metadata = { title: "Create your SEOForge account", description: "Create the account used to subscribe, connect a website and control production approvals." };
 
 export default function SignUpPage() {
-  return (
-    <main className="grid-fade flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-12">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber" aria-hidden />
-        <span className="display text-lg font-semibold">
-          SEO<span className="text-primary">Forge</span>
-        </span>
-      </Link>
-      <SignUp />
-      <p className="text-xs text-fg-faint">
-        Four agents. Two pipelines. One human-controlled production gate.
-      </p>
-    </main>
-  );
+  return <main className="marketing-shell min-h-screen"><div className="mx-auto grid min-h-screen max-w-7xl items-center gap-14 px-6 py-12 lg:grid-cols-[.9fr_1.1fr]">
+    <section><Link href="/pricing" className="inline-flex items-center gap-2 text-xs text-fg-faint hover:text-primary"><ArrowLeft size={13}/>Back to paid plans</Link><p className="marketing-kicker mt-12"><span/>Create your account</p><h1 className="mt-6 text-balance text-4xl font-semibold leading-tight sm:text-6xl">An identity for approvals—not a shortcut into production.</h1><p className="mt-6 max-w-xl text-lg leading-8 text-fg-mute">Your account controls workspace membership, subscription, website connections and production decisions. Creating it does not start a free trial or grant repository access.</p><div className="mt-9 space-y-3">{["Choose and pay for capacity before autonomous work begins","Authorize GitHub or WordPress separately","Complete provider and site-readiness checks","Keep every production proposal behind explicit approval"].map(item=><p key={item} className="flex items-start gap-3 text-sm text-fg-mute"><Check size={15} className="mt-1 shrink-0 text-mint"/>{item}</p>)}</div><div className="mt-10 grid grid-cols-3 gap-3">{[[CreditCard,"Paid access"],[GitBranch,"Scoped connection"],[ShieldCheck,"Human approval"]].map(([Icon,label])=><div key={String(label)} className="rounded-xl border border-edge bg-panel p-4"><Icon size={16} className="text-primary"/><p className="mt-5 text-[11px] font-semibold">{String(label)}</p></div>)}</div></section>
+    <section className="flex justify-center rounded-3xl border border-edge bg-panel/35 px-4 py-10 sm:px-8"><div className="w-full max-w-md"><div className="mb-7 text-center"><Link href="/" className="display text-lg font-semibold">SEO<span className="text-primary">Forge</span></Link><p className="mt-2 text-xs text-fg-faint">Four agents · two pipelines · one production gate</p></div><SignUp /><p className="mt-6 text-center text-[11px] leading-5 text-fg-faint">By continuing, you agree to the <Link href="/terms" className="text-primary hover:underline">Terms</Link> and acknowledge the <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.</p></div></section>
+  </div></main>;
 }

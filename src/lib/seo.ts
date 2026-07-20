@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://seoforge.online";
-export const SITE_NAME = "SEO Forge";
+export const SITE_NAME = "SEOForge";
 
 type PageMetadataInput = {
   title: string;

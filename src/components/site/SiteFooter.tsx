@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const columns = [
   { title: "Platform", links: [["/platform/content-growth", "Content Growth"], ["/platform/search-optimization", "Search Optimization"], ["/platform/workflow-supervisor", "Workflow Supervisor"], ["/platform/site-experience-engineer", "Site Engineer"], ["/platform/human-approval", "Human approval"]] },
-  { title: "Solutions", links: [["/solutions/saas", "SaaS"], ["/solutions/ecommerce", "Ecommerce"], ["/solutions/agencies", "Agencies"], ["/solutions/publishers", "Publishers"], ["/solutions/local-businesses", "Local business"]] },
+  { title: "Solutions", links: [["/solutions/saas", "SaaS"], ["/solutions/ecommerce", "Ecommerce"], ["/solutions/agencies", "Agencies"], ["/solutions/publishers", "Publishers"], ["/solutions/local-business", "Local business"]] },
   { title: "Resources", links: [["/how-it-works", "How it works"], ["/integrations", "Integrations"], ["/guides", "Guides"], ["/templates", "Templates"], ["/glossary", "Glossary"], ["/blog", "Blog"]] },
   { title: "Company", links: [["/about", "About"], ["/pricing", "Pricing"], ["/demo", "Book a demo"], ["/security", "Security"], ["/trust", "Trust center"], ["/contact", "Contact"]] },
   { title: "Developers", links: [["/developers", "Developer platform"], ["/docs", "Documentation"], ["/api", "REST API"], ["/mcp", "Remote MCP"], ["/webhooks", "Webhooks"], ["/status", "Status"]] },

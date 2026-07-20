@@ -70,30 +70,35 @@ export function environmentId(): string {
 }
 
 /**
- * Branch protocol appended when the website repo is mounted for the Site
- * Experience Engineer. Branch naming (`seo-agent/<proposal-id>`) matches the
- * agent's own persisted system prompt (Stage 5 — Implement in an Isolated
- * Runner) exactly, so the kickoff-time instruction and the agent's durable
- * identity never disagree. Whether the agent opens the PR itself via its
- * GitHub MCP connector or leaves the branch for the platform to pick up,
- * `syncAgentBranches` (lib/github.ts) picks up either case and surfaces it
- * in the Approvals queue — this protocol text doesn't need to pin down
- * which one happens.
+ * Change-delivery protocol appended when the website repo is mounted for
+ * the Site Experience Engineer. The agent validates its change locally
+ * (build/lint/tests against the mounted working copy) but never pushes a
+ * branch or opens a PR itself — its own GitHub MCP connector is a single
+ * credential shared across every customer's session and can't safely hold
+ * write access to an arbitrary customer's repo. Instead it reports the
+ * finished diff as a structured `ImplementationProposal`, and the platform
+ * (`openProposalPR` in lib/github.ts) opens the real branch/PR using THAT
+ * customer's own token — the same mechanism `mergePR`/`syncAgentBranches`
+ * already use, which is what makes this safe to run against any customer's
+ * repo, not just one.
  */
 export function branchProtocol(repo: string): string {
   return [
     ``,
     `--- CHANGE-DELIVERY PROTOCOL (mandatory) ---`,
-    `The website repository (${repo}) is mounted at /workspace/site with push access.`,
-    `When you have concrete file-level changes:`,
-    `1. cd /workspace/site && git checkout -b seo-agent/<proposal-id> (one branch per coherent change set,`,
-    `   per your own Stage 5 protocol)`,
-    `2. Apply the changes, commit with a clear message explaining the SEO rationale, and push the branch.`,
-    `3. Never push directly to the default branch and never merge — a human approves every merge in the`,
-    `   SEOForge dashboard. Whether you open the PR yourself or leave the pushed branch for the platform`,
-    `   to open, either way it lands in the human approval queue.`,
-    `4. End your run with a short summary: branches pushed, files changed, expected impact.`,
-    `If your findings need no file changes, just report them clearly.`,
+    `The website repository (${repo}) is mounted read-only at /workspace/site for investigation and`,
+    `local validation only (build, lint, tests). You do NOT have push access and must NOT attempt to`,
+    `create a branch, commit, push, or open a PR yourself, even via your own GitHub tools — the platform`,
+    `does that using the site owner's own credentials, not yours.`,
+    `When you have a concrete, validated file-level change:`,
+    `1. Apply and validate it locally against the mounted copy (build/lint/tests), then discard your`,
+    `   local changes — nothing you write to /workspace/site is pushed anywhere.`,
+    `2. Report it as a complete \`ImplementationProposal\` artifact with the FULL new content of every`,
+    `   changed file (not a truncated diff): { "artifactType": "ImplementationProposal", ..., "diff":`,
+    `   { "files": [ { "path": "src/app/about/page.tsx", "newContent": "<complete file contents>" } ] } }.`,
+    `3. The platform opens the real branch and PR from this artifact — never merges it. A human approves`,
+    `   every merge in the SEOForge dashboard.`,
+    `If your findings need no file changes, just report them clearly and omit the artifact.`,
   ].join("\n");
 }
 

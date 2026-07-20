@@ -1,19 +1,8 @@
 import Link from "next/link";
+import { ArrowRight, FileQuestion, Search } from "lucide-react";
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
 
 export default function NotFound() {
-  return (
-    <main className="grid-fade flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="display text-7xl font-bold text-primary glow-primary">404</p>
-      <h1 className="text-xl font-semibold">This page fell out of the index.</h1>
-      <p className="max-w-md text-sm text-fg-mute">
-        The URL you requested doesn&apos;t exist. Even our SEO agents couldn&apos;t rank it.
-      </p>
-      <Link
-        href="/"
-        className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-dim"
-      >
-        Back to home
-      </Link>
-    </main>
-  );
+  return <main className="marketing-shell min-h-screen"><SiteHeader /><section className="marketing-hero"><div className="mx-auto grid min-h-[68vh] max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[.9fr_1.1fr]"><div><p className="marketing-kicker"><span />HTTP 404 · not indexed</p><h1 className="mt-6 text-6xl font-semibold sm:text-8xl">This URL has no owner.</h1><p className="mt-6 max-w-xl text-lg leading-8 text-fg-mute">The route may have moved, been removed, or never existed. Nothing was published here—and no agent is going to invent a page to fill the gap.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/" className="marketing-button marketing-button-primary">Return home <ArrowRight size={15}/></Link><Link href="/platform" className="marketing-button marketing-button-secondary">Explore the platform</Link></div></div><div className="relative rounded-3xl border border-edge bg-panel p-8"><div className="flex items-center justify-between border-b border-edge pb-5"><span className="text-[10px] uppercase tracking-[.2em] text-fg-faint">Crawl report</span><Search size={17} className="text-primary"/></div><FileQuestion size={72} strokeWidth={1} className="mx-auto my-16 text-fg-faint"/><div className="grid grid-cols-3 gap-3 text-center text-xs"><div className="rounded-xl bg-panel-2 p-4"><p className="text-2xl font-semibold">0</p><p className="mt-1 text-fg-faint">content</p></div><div className="rounded-xl bg-panel-2 p-4"><p className="text-2xl font-semibold">0</p><p className="mt-1 text-fg-faint">links</p></div><div className="rounded-xl bg-panel-2 p-4"><p className="text-2xl font-semibold text-rose">404</p><p className="mt-1 text-fg-faint">status</p></div></div></div></div></section><SiteFooter /></main>;
 }
