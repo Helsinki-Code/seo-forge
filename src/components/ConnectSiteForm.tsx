@@ -134,7 +134,7 @@ export default function ConnectSiteForm() {
             <span>
               <span className="block text-sm font-semibold">GitHub repository</span>
               <span className="mt-0.5 block text-xs text-fg-mute">
-                Agents push seo/* branches; you approve PRs; your pipeline deploys.
+                Agents push seo-agent/* branches; you approve PRs; your pipeline deploys.
               </span>
             </span>
           </button>

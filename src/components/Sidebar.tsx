@@ -4,20 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bot,
+  FlaskConical,
   GitPullRequest,
   Image as ImageIcon,
   LayoutDashboard,
   LineChart,
+  ListChecks,
   Newspaper,
   Settings,
 } from "lucide-react";
 
 const nav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/agents", label: "Agents", icon: Bot },
-  { href: "/dashboard/rankings", label: "Rankings", icon: LineChart },
-  { href: "/dashboard/content", label: "Content", icon: Newspaper },
-  { href: "/dashboard/approvals", label: "Approvals", icon: GitPullRequest },
+  { href: "/dashboard/content", label: "Content Growth", icon: Newspaper },
+  { href: "/dashboard/rankings", label: "Search Optimization", icon: LineChart },
+  { href: "/dashboard/agents", label: "Supervisor", icon: Bot },
+  { href: "/dashboard/approvals", label: "Production", icon: GitPullRequest },
+  { href: "/dashboard/findings", label: "Findings", icon: ListChecks },
+  { href: "/dashboard/experiments", label: "Experiments", icon: FlaskConical },
   { href: "/dashboard/media", label: "Media", icon: ImageIcon },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

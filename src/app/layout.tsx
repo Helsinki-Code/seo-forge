@@ -23,6 +23,7 @@ const SITE_DESCRIPTION =
   "An autonomous team of AI agents that reviews your website, tracks SERPs and rankings, optimizes content, and ships changes through human-approved deploys.";
 
 export const metadata: Metadata = {
+<<<<<<< HEAD
   title: {
     default: `${SITE_NAME} — Autonomous SEO Mission Control`,
     template: `%s — ${SITE_NAME}`,
@@ -61,6 +62,14 @@ const websiteJsonLd = {
   name: SITE_NAME,
   url: SITE_URL,
   description: SITE_DESCRIPTION,
+=======
+  title: { default: "SEOForge — Autonomous content and search operations", template: "%s | SEOForge" },
+  description:
+    "Two continuous agent pipelines research, create and optimize website content while a human-controlled workflow protects every production change.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://seoforge.online"),
+  openGraph: { type: "website", siteName: "SEOForge", title: "SEOForge — Autonomous content and search operations", description: "Continuous content growth and search optimization with evidence, validation and human production authority." },
+  twitter: { card: "summary_large_image", title: "SEOForge", description: "Autonomous content and search operations with human-controlled production." },
+>>>>>>> ad9802d (seo forge real upgrade)
 };
 
 export default function RootLayout({

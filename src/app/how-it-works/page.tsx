@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import {
@@ -150,3 +151,12 @@ export default function HowItWorksPage() {
     </main>
   );
 }
+=======
+import type { Metadata } from "next";
+import MarketingPage from "@/components/marketing/MarketingPage";
+import type { MarketingPageSpec } from "@/lib/marketing-pages";
+
+export const metadata: Metadata = { title: "How it works", description: "From provider evidence to content or optimization proposal, explicit approval, production delivery and outcome measurement." };
+const page: MarketingPageSpec = { path: "how-it-works", kind: "hub", eyebrow: "The complete workflow", title: "From search evidence to an approved production outcome.", description: "SEOForge keeps creation and optimization moving independently, coordinates them through one Supervisor, and stops every production change at a review surface built for a human decision.", primaryCta: "Choose Your Plan", primaryHref: "/pricing", secondaryCta: "Book a Demo", secondaryHref: "/demo", features: [{ title: "Continuous provider ingestion", body: "Normalize website, search, analytics, ranking, competitor, backlink and production observations with source and freshness context." }, { title: "Two independent work queues", body: "New-content work does not block optimization, and optimization does not consume the entire editorial calendar." }, { title: "Supervisor prioritization", body: "Budgets, urgency, evidence strength, impact, conflict and readiness determine what moves forward." }, { title: "Specialist investigation", body: "The responsible agent gathers the evidence and records a concise, reviewable decision summary." }, { title: "Website-native proposal", body: "The Site Experience Engineer prepares the exact GitHub or WordPress change with tests and rollback context." }, { title: "Human decision and measurement", body: "Only explicit approval reaches production; later observations determine retain, iterate or revert." }], steps: ["Ingest and normalize authorized provider data", "Detect an anomaly or qualified opportunity", "Prioritize through the Workflow Supervisor", "Investigate with the responsible specialist", "Create an evidence-backed finding and hypothesis", "Prepare and validate the website-native change", "Present diff, preview, risk, provenance and rollback", "Require explicit authenticated human approval", "Publish through the configured GitHub or WordPress control", "Validate production and measure the observation window"], integrations: ["GitHub", "WordPress", "Search Console", "GA4", "DataForSEO", "Bing", "Slack", "Remote MCP"], faqs: [{ question: "Can a cron job deploy directly?", answer: "No. Schedules and heartbeats can investigate and prepare production work, but they cannot approve or publish it." }, { question: "What happens when a check fails?", answer: "The proposal remains blocked, the failure and retry state stay visible, and recovery must satisfy the configured validation policy." }, { question: "What happens after deployment?", answer: "SEOForge runs smoke, crawl, schema, link and performance checks, then measures search and conversion observations over the chosen window." }], related: [{ href: "/platform", label: "Explore the platform" }, { href: "/platform/human-approval", label: "Review human approval" }, { href: "/pricing", label: "Choose a plan" }] };
+export default function HowItWorksPage() { return <MarketingPage page={page} />; }
+>>>>>>> ad9802d (seo forge real upgrade)

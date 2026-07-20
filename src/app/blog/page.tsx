@@ -1,6 +1,5 @@
 import Link from "next/link";
-import SiteHeader from "@/components/site/SiteHeader";
-import SiteFooter from "@/components/site/SiteFooter";
+import { MarketingShell } from "@/components/marketing/MarketingPage";
 import { posts } from "@/lib/posts";
 import { pageMetadata } from "@/lib/seo";
 
@@ -12,20 +11,19 @@ export const metadata = pageMetadata({
 
 export default function BlogIndexPage() {
   return (
-    <main className="grid-fade min-h-screen">
-      <SiteHeader />
-      <section className="mx-auto max-w-3xl px-6 pb-6 pt-16">
-        <h1 className="text-4xl font-bold">Field notes</h1>
-        <p className="mt-3 text-lg text-fg-mute">
-          What we&apos;re learning running an autonomous SEO team in production.
-        </p>
+    <MarketingShell>
+      <section className="marketing-hero border-b border-edge"><div className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
+        <p className="marketing-kicker"><span />Field notes</p>
+        <h1 className="mt-6 max-w-4xl text-balance text-4xl font-semibold sm:text-6xl">Search operations, explained with the boundary conditions visible.</h1>
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-fg-mute">Practical thinking about autonomous content, continuous optimization, evidence, production safety and measurement.</p>
+      </div>
       </section>
-      <section className="mx-auto flex max-w-3xl flex-col gap-4 px-6 pb-24">
+      <section className="mx-auto grid max-w-5xl gap-4 px-6 py-20 sm:grid-cols-2">
         {posts.map((p) => (
           <Link
             key={p.slug}
             href={`/blog/${p.slug}`}
-            className="panel group p-6 transition-colors duration-200"
+          className="marketing-card group p-6 transition-colors duration-200"
           >
             <div className="mb-2 flex items-center gap-3 text-[11px] text-fg-faint">
               <span className="rounded-full bg-primary/15 px-2.5 py-0.5 font-medium text-primary">
@@ -41,7 +39,6 @@ export default function BlogIndexPage() {
           </Link>
         ))}
       </section>
-      <SiteFooter />
-    </main>
+    </MarketingShell>
   );
 }

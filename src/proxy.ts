@@ -18,6 +18,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/contact",
   "/api/cron(.*)", // protected by CRON_SECRET instead of a user session
   "/api/webhooks(.*)", // protected by HMAC signature verification
+  "/api/mcp/ga4", // protected by a hashed, site-bound SEO Forge bearer token
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

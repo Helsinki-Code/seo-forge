@@ -59,13 +59,25 @@ export async function closePR(site: Site, prNumber: number) {
 }
 
 /**
- * The agent → PR bridge. Agents push `seo/*` branches (never PRs, never main);
- * this scans the user's repo for agent branches with no open PR and opens one
- * for each, so every proposed change surfaces in the Approvals queue.
+ * The agent → PR bridge. The Site Experience Engineer pushes `seo-agent/*`
+ * branches per its own persisted system prompt — it may or may not open the
+ * PR itself via its GitHub MCP connector, so this handles both:
+ *
+ *  - Branch with no open PR yet → the platform opens one (matches the
+ *    original design: agent never pushes to main, never merges).
+ *  - Branch that already has an open PR (the agent opened it itself) → that
+ *    PR is surfaced as-is, not recreated.
+ *
+ * Either way every proposed change ends up in this return value so the
+ * caller can insert it into the Approvals queue. This function has no DB
+ * access — callers are responsible for de-duping against already-tracked
+ * `approvals.pr_number` rows before inserting, since re-running this scan
+ * (webhook retries, the manual "Sync PRs" button) will return the same
+ * already-open PR again every time.
  */
 export async function syncAgentBranches(
   site: Site,
-): Promise<{ branch: string; prNumber: number; title: string }[]> {
+): Promise<{ branch: string; prNumber: number; title: string; url: string }[]> {
   const { owner, repo } = siteRepoOf(site);
   const gh = octoFor(site);
 
@@ -76,14 +88,26 @@ export async function syncAgentBranches(
   ]);
 
   const base = repoInfo.data.default_branch;
-  const withPR = new Set(openPRs.data.map((pr) => pr.head.ref));
+  const agentPRsByBranch = new Map(
+    openPRs.data
+      .filter((pr) => pr.head.ref.startsWith("seo-agent/"))
+      .map((pr) => [pr.head.ref, pr] as const),
+  );
+
+  const result: { branch: string; prNumber: number; title: string; url: string }[] = [];
+
+  // Case A: the agent already opened the PR itself — surface it as-is.
+  for (const [branch, pr] of agentPRsByBranch) {
+    result.push({ branch, prNumber: pr.number, title: pr.title, url: pr.html_url });
+  }
+
+  // Case B: the agent pushed a branch but didn't open a PR — open one now.
   const candidates = branches.data
     .map((b) => b.name)
-    .filter((name) => name.startsWith("seo/") && !withPR.has(name));
+    .filter((name) => name.startsWith("seo-agent/") && !agentPRsByBranch.has(name));
 
-  const created: { branch: string; prNumber: number; title: string }[] = [];
   for (const branch of candidates) {
-    const slug = branch.replace(/^seo\//, "").replace(/-/g, " ");
+    const slug = branch.replace(/^seo-agent\//, "").replace(/-/g, " ");
     const title = `SEO: ${slug}`;
     try {
       const pr = await gh.rest.pulls.create({
@@ -101,10 +125,10 @@ export async function syncAgentBranches(
           "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
         ].join("\n"),
       });
-      created.push({ branch, prNumber: pr.data.number, title });
+      result.push({ branch, prNumber: pr.data.number, title, url: pr.data.html_url });
     } catch {
       // branch may have no diff against base, or a race — skip
     }
   }
-  return created;
+  return result;
 }

@@ -1,5 +1,10 @@
 import Link from "next/link";
+<<<<<<< HEAD
 import { pageMetadata } from "@/lib/seo";
+=======
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
+>>>>>>> ad9802d (seo forge real upgrade)
 
 export const metadata = pageMetadata({
   title: "Terms of Service",
@@ -10,7 +15,7 @@ export const metadata = pageMetadata({
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="marketing-shell min-h-screen"><SiteHeader /><article className="mx-auto max-w-3xl px-6 py-16">
       <Link href="/" className="text-xs text-primary hover:underline">
         ← seoforge.online
       </Link>
@@ -23,7 +28,7 @@ export default function TermsPage() {
           <p>
             SEO Forge provides an AI-agent-powered SEO operations dashboard. Agents propose
             website changes; changes only reach production after a human approves the
-            corresponding pull request.
+            corresponding GitHub or WordPress production proposal.
           </p>
         </section>
         <section>
@@ -50,6 +55,6 @@ export default function TermsPage() {
           </p>
         </section>
       </div>
-    </main>
+    </article><SiteFooter /></main>
   );
 }

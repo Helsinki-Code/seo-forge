@@ -14,7 +14,7 @@ export default function SignUpPage() {
       </Link>
       <SignUp />
       <p className="text-xs text-fg-faint">
-        Eight agents. One approval queue. Your rankings, compounding.
+        Four agents. Two pipelines. One human-controlled production gate.
       </p>
     </main>
   );

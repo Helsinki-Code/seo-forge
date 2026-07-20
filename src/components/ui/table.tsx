@@ -21,7 +21,10 @@ function useProximityHover<T extends HTMLElement>(containerRef: RefObject<T | nu
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [itemRects, setItemRects] = useState<ItemRect[]>([]);
   const itemRectsRef = useRef<ItemRect[]>([]);
-  const sessionRef = useRef(0);
+  // Bumped on mouse-enter so the highlight's `key` changes and it remounts
+  // with a fresh fade-in instead of animating from its last exit position.
+  // Must be state, not a ref, since it's read during render (as a JSX key).
+  const [session, setSession] = useState(0);
   const rafIdRef = useRef<number | null>(null);
 
   const registerItem = useCallback((index: number, element: HTMLElement | null) => {
@@ -62,7 +65,7 @@ function useProximityHover<T extends HTMLElement>(containerRef: RefObject<T | nu
     });
   }, [containerRef]);
 
-  const handleMouseEnter = useCallback(() => { sessionRef.current += 1; }, []);
+  const handleMouseEnter = useCallback(() => { setSession((s) => s + 1); }, []);
   const handleMouseLeave = useCallback(() => {
     if (rafIdRef.current !== null) { cancelAnimationFrame(rafIdRef.current); rafIdRef.current = null; }
     setActiveIndex(null);
@@ -70,7 +73,7 @@ function useProximityHover<T extends HTMLElement>(containerRef: RefObject<T | nu
 
   useEffect(() => { return () => { if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current); }; }, []);
 
-  return { activeIndex, itemRects, sessionRef, handlers: { onMouseMove: handleMouseMove, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave }, registerItem, measureItems };
+  return { activeIndex, itemRects, session, handlers: { onMouseMove: handleMouseMove, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave }, registerItem, measureItems };
 }
 
 // ─── Table Context ──────────────────────────────────────────────────────────
@@ -91,7 +94,7 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
 const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ children, className, ...props }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { activeIndex, itemRects, sessionRef, handlers, registerItem, measureItems } = useProximityHover(containerRef);
+    const { activeIndex, itemRects, session, handlers, registerItem, measureItems } = useProximityHover(containerRef);
 
     useEffect(() => { measureItems(); }, [measureItems, children]);
 
@@ -103,7 +106,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           <AnimatePresence>
             {activeRect && (
               <motion.div
-                key={sessionRef.current}
+                key={session}
                 className="absolute bg-neutral-200/40 dark:bg-neutral-800/25 pointer-events-none z-0"
                 initial={{ opacity: 0, top: activeRect.top, left: activeRect.left, width: activeRect.width, height: activeRect.height }}
                 animate={{ opacity: 1, top: activeRect.top, left: activeRect.left, width: activeRect.width, height: activeRect.height }}

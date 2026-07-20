@@ -1,69 +1,27 @@
 import Link from "next/link";
 
-const cols = [
-  {
-    title: "Product",
-    links: [
-      { href: "/how-it-works", label: "How it works" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/dashboard", label: "Dashboard" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { href: "/blog", label: "Blog" },
-      { href: "/contact", label: "Contact" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { href: "/about", label: "About" },
-      { href: "/privacy", label: "Privacy" },
-      { href: "/terms", label: "Terms" },
-    ],
-  },
-];
+const columns = [
+  { title: "Platform", links: [["/platform/content-growth", "Content Growth"], ["/platform/search-optimization", "Search Optimization"], ["/platform/workflow-supervisor", "Workflow Supervisor"], ["/platform/site-experience-engineer", "Site Engineer"], ["/platform/human-approval", "Human approval"]] },
+  { title: "Solutions", links: [["/solutions/saas", "SaaS"], ["/solutions/ecommerce", "Ecommerce"], ["/solutions/agencies", "Agencies"], ["/solutions/publishers", "Publishers"], ["/solutions/local-businesses", "Local business"]] },
+  { title: "Resources", links: [["/how-it-works", "How it works"], ["/integrations", "Integrations"], ["/guides", "Guides"], ["/templates", "Templates"], ["/glossary", "Glossary"], ["/blog", "Blog"]] },
+  { title: "Company", links: [["/about", "About"], ["/pricing", "Pricing"], ["/demo", "Book a demo"], ["/security", "Security"], ["/trust", "Trust center"], ["/contact", "Contact"]] },
+  { title: "Developers", links: [["/developers", "Developer platform"], ["/docs", "Documentation"], ["/api", "REST API"], ["/mcp", "Remote MCP"], ["/webhooks", "Webhooks"], ["/status", "Status"]] },
+] as const;
 
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-edge">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
+    <footer className="border-t border-edge bg-panel/35">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.2fr_3fr]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-amber" aria-hidden />
-            <span className="display text-sm font-semibold">
-              SEO<span className="text-primary">Forge</span>
-            </span>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-fg-faint">
-            Autonomous SEO agents. Human-approved deploys.
-          </p>
+          <Link href="/" className="flex items-center gap-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12 text-sm font-semibold text-primary">S</span><span className="display font-semibold">SEO<span className="text-primary">Forge</span></span></Link>
+          <p className="mt-5 max-w-xs text-sm leading-6 text-fg-mute">Two continuous organic-growth pipelines, one accountable Supervisor and one protected path to production.</p>
+          <p className="mt-5 text-xs text-fg-faint">Rankings are measured outcomes, never guarantees.</p>
         </div>
-        {cols.map((c) => (
-          <div key={c.title}>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-fg-faint">
-              {c.title}
-            </p>
-            <ul className="space-y-2">
-              {c.links.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-sm text-fg-mute transition-colors duration-200 hover:text-fg"
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+          {columns.map((column) => <div key={column.title}><p className="text-xs font-semibold uppercase tracking-[.16em] text-fg-faint">{column.title}</p><ul className="mt-4 space-y-3">{column.links.map(([href, label]) => <li key={href}><Link href={href} className="text-sm text-fg-mute transition hover:text-fg">{label}</Link></li>)}</ul></div>)}
+        </div>
       </div>
-      <p className="border-t border-edge py-6 text-center text-xs text-fg-faint">
-        © {new Date().getFullYear()} SEO Forge · seoforge.online
-      </p>
+      <div className="border-t border-edge"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-6 text-xs text-fg-faint"><p>© {new Date().getFullYear()} SEOForge. Autonomous research, human authority.</p><div className="flex gap-5"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/acceptable-use">Acceptable use</Link></div></div></div>
     </footer>
   );
 }

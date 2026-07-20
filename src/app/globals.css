@@ -246,3 +246,122 @@ button, a, [role="button"] {
   --sidebar-border: #1c2230;
   --sidebar-ring: #3b82f6;
 }
+
+/* Public website primitives, adapted from the selected 21st.dev patterns. */
+.marketing-shell {
+  background:
+    radial-gradient(circle at 75% 2%, rgba(59, 130, 246, .10), transparent 26rem),
+    radial-gradient(circle at 12% 22%, rgba(245, 158, 11, .055), transparent 22rem),
+    var(--color-ink);
+  color: var(--color-fg);
+}
+
+.marketing-hero {
+  background-image:
+    linear-gradient(to bottom, transparent 55%, rgba(5, 5, 7, .92)),
+    linear-gradient(rgba(28, 34, 48, .32) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(28, 34, 48, .32) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+}
+
+.marketing-kicker {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: var(--color-mint);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.marketing-kicker > span,
+.status-pill > span {
+  width: .45rem;
+  height: .45rem;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.marketing-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border-radius: .7rem;
+  padding: .72rem 1.1rem;
+  font-size: .875rem;
+  font-weight: 650;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.marketing-button:hover { transform: translateY(-1px); }
+.marketing-button-primary { background: var(--color-primary); color: white; box-shadow: 0 12px 40px -18px rgba(59,130,246,.9); }
+.marketing-button-primary:hover { background: #2563eb; }
+.marketing-button-secondary { border: 1px solid var(--color-edge-2); background: rgba(11,13,18,.75); color: var(--color-fg); }
+.marketing-button-secondary:hover { border-color: rgba(59,130,246,.55); background: var(--color-panel-2); }
+
+.marketing-preview,
+.marketing-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-edge);
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgba(16,19,27,.96), rgba(8,10,15,.96));
+}
+
+.marketing-preview { box-shadow: 0 35px 90px -42px rgba(0,0,0,.95); }
+.marketing-card { transition: border-color .2s ease, transform .2s ease; }
+.marketing-card:hover { border-color: var(--color-edge-2); transform: translateY(-2px); }
+
+.marketing-card-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .23;
+  background-image: linear-gradient(rgba(42,51,71,.45) 1px, transparent 1px), linear-gradient(90deg, rgba(42,51,71,.45) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+.preview-icon {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: .65rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid rgba(52,211,153,.25);
+  border-radius: 999px;
+  background: rgba(52,211,153,.08);
+  padding: .35rem .6rem;
+  color: var(--color-mint);
+  font-size: .62rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.marketing-cta { background: linear-gradient(135deg, rgba(59,130,246,.15), rgba(16,19,27,.95) 50%, rgba(245,158,11,.08)); }
+.marketing-orb { position: absolute; border-radius: 999px; filter: blur(70px); pointer-events: none; }
+.marketing-orb-one { right: 8%; top: 13%; width: 17rem; height: 17rem; background: rgba(59,130,246,.12); }
+.marketing-orb-two { left: 5%; bottom: 6%; width: 12rem; height: 12rem; background: rgba(245,158,11,.07); }
+.marketing-orb-three { right: -3rem; top: -4rem; width: 18rem; height: 18rem; background: rgba(59,130,246,.13); }
+
+.nav-group[open] > summary { color: var(--color-fg); background: var(--color-panel); }
+.nav-group[open] .nav-menu { display: grid; }
+.nav-group summary::-webkit-details-marker,
+details > summary::-webkit-details-marker { display: none; }
+
+@media (max-width: 640px) {
+  .marketing-hero { background-size: 100% 100%, 34px 34px, 34px 34px; }
+  .marketing-button { width: 100%; }
+  .marketing-header .marketing-button { width: auto; }
+}

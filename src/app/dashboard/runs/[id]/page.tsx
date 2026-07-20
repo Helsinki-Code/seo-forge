@@ -6,6 +6,7 @@ import { consoleUrl, getSessionMessages } from "@/lib/agents";
 import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/lib/supabase";
 import { getUserSite, type AgentRun } from "@/lib/data";
+import LiveAgentActivity from "@/components/LiveAgentActivity";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,8 @@ export default async function RunDetailPage({
           <p className="mt-2 text-sm text-fg-mute">{run.summary}</p>
         </div>
       )}
+
+      {run.session_id && <LiveAgentActivity runId={run.id} isRunning={run.status === "running"} />}
 
       <section className="panel p-6">
         <h2 className="mb-4 text-sm font-semibold">Agent findings & report</h2>

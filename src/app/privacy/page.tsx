@@ -1,5 +1,10 @@
 import Link from "next/link";
+<<<<<<< HEAD
 import { pageMetadata } from "@/lib/seo";
+=======
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
+>>>>>>> ad9802d (seo forge real upgrade)
 
 export const metadata = pageMetadata({
   title: "Privacy Policy",
@@ -10,7 +15,7 @@ export const metadata = pageMetadata({
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="marketing-shell min-h-screen"><SiteHeader /><article className="mx-auto max-w-3xl px-6 py-16">
       <Link href="/" className="text-xs text-primary hover:underline">
         ← seoforge.online
       </Link>
@@ -21,7 +26,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="mb-2 text-base font-semibold text-fg">What we collect</h2>
           <p>
-            SEO Forge stores your account details (via Clerk), the keywords, rankings, agent
+            SEOForge stores your account details, the keywords, rankings, agent
             runs, approvals, and media records you create in the dashboard (in Supabase), and
             operational logs needed to run the service.
           </p>
@@ -30,16 +35,16 @@ export default function PrivacyPage() {
           <h2 className="mb-2 text-base font-semibold text-fg">How it&apos;s used</h2>
           <p>
             Your data powers the autonomous SEO workflows you trigger: agent sessions on the
-            Anthropic platform, SERP analysis, content optimization, and GitHub pull-request
-            deploys. We do not sell your data or use it for advertising.
+            configured model providers, SERP analysis, content workflows, and authorized GitHub
+            or WordPress delivery. We do not sell your data or use it for advertising.
           </p>
         </section>
         <section>
           <h2 className="mb-2 text-base font-semibold text-fg">Third-party services</h2>
           <p>
-            SEO Forge integrates Clerk (authentication), Supabase (database), Anthropic
-            (agent execution), GitHub (deploys), and Vercel (hosting). Each processes data
-            under its own privacy policy.
+            SEOForge uses infrastructure, authentication, database, model, analytics,
+            repository, CMS and communications providers. The current subprocessor page
+            documents approved providers and their processing purposes.
           </p>
         </section>
         <section>
@@ -54,6 +59,6 @@ export default function PrivacyPage() {
           <p>Questions? Reach the operator of seoforge.online via the site&apos;s contact channel.</p>
         </section>
       </div>
-    </main>
+    </article><SiteFooter /></main>
   );
 }

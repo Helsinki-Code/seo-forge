@@ -1,52 +1,60 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Site } from "./data";
 import { siteRepoOf, siteTokenOf } from "./github";
+import { supabase } from "./supabase";
 
-/** The autonomous SEO team — persisted Anthropic Managed Agents. */
+/**
+ * The live SEOForge agent team — 4 persisted Anthropic Managed Agents.
+ * The Workflow Supervisor is a `multiagent` coordinator whose own agent
+ * definition embeds the 3 specialists (visible on `session.agent.multiagent.agents`
+ * when you create/retrieve a session against it). Messaging the supervisor
+ * runs as a single session; if/when it delegates to a specialist, that shows
+ * up as an additional `session.thread_status_running/idle` event pair on the
+ * SAME session, tagged with a `session_thread_id` and the specialist's
+ * `agent_name` — there is no separate child session id to track (verified
+ * against a live session).
+ *
+ * The 3 specialists each carry their own vault-mediated MCP connectors
+ * (DataForSEO/Firecrawl/fal.ai for content+search, GitHub for site
+ * experience) baked into their platform agent definition, so this app no
+ * longer needs to mount anything for them — only the Site Experience
+ * Engineer still needs a repository mount to produce a patch.
+ */
 export const AGENT_TEAM = {
-  orchestrator: {
-    id: "agent_01JRrrCZpTmUc7wqvfpSnR7V",
-    name: "Content Production Orchestrator",
-    role: "Coordinates the full content pipeline end to end",
+  supervisor: {
+    id: "agent_01NR9DZx3Z1S3fut7dFSNzYZ",
+    name: "SEOForge Workflow Supervisor",
+    role: "Routes work across the team, enforces budgets, quotas, and the human approval gate",
   },
-  blogger: {
-    id: "agent_011yZAZvEyyCSwepSsNuuUbn",
-    name: "Primary Blogger Agent",
-    role: "Niche research, blog planning, content calendar",
+  contentGrowth: {
+    id: "agent_01Ti9yWWp9H58CBqfXfgynEy",
+    name: "SEOForge Content Growth Agent",
+    role: "Opportunity research, briefs, evidence-backed writing, media direction, monetization",
   },
-  contextBuilder: {
-    id: "agent_014L1XwJ8RUGKYbNxxzba3q7",
-    name: "Product Marketing Context Builder",
-    role: "Maintains the product marketing context document",
+  searchOptimization: {
+    id: "agent_01FK4xATicBCTxA9yVvewzAm",
+    name: "SEOForge Search Optimization Agent",
+    role: "Rankings, technical SEO, competitors, backlinks, GEO/AI-citation visibility",
   },
-  siteArchitect: {
-    id: "agent_01Rwi3rgNFMCxDkymZ5EFgYD",
-    name: "Site Architecture Agent",
-    role: "Page hierarchy, URL map, internal linking plan",
-  },
-  strategist: {
-    id: "agent_014EVPXbSk2QKENRm34b9fu9",
-    name: "SEO Content Strategy Agent",
-    role: "SERP analysis, keyword clustering, CTR titles & metas",
-  },
-  writer: {
-    id: "agent_01TCFkz2D7UVZMb4ECysQ1fc",
-    name: "SEO Content Writer Agent",
-    role: "Publish-ready articles with links and image specs",
-  },
-  imageGenerator: {
-    id: "agent_01GVw7DZANtMcoXc9NJHrWX8",
-    name: "Article Image Generator",
-    role: "Generates on-brand images matching article tone & style",
-  },
-  affiliate: {
-    id: "agent_019trfc6SQDBHP58X7USGH9x",
-    name: "Affiliate Product Research Agent",
-    role: "Maps affiliate income opportunities per article",
+  siteExperience: {
+    id: "agent_017t3uSLPEro7AkGeV6gQY6c",
+    name: "SEOForge Site Experience Engineer",
+    role: "Repository/CMS implementation — validated proposals and pull requests",
   },
 } as const;
 
 export type AgentKey = keyof typeof AGENT_TEAM;
+
+/**
+ * The workspace credential vault holding every specialist's MCP credentials
+ * (DataForSEO, Firecrawl, fal.ai, GitHub). Vault credentials are matched to
+ * an agent's `mcp_servers` entries purely by URL — there is no per-connector
+ * reference to set in the agent config itself — but the match only activates
+ * when a session's `vault_ids` includes this vault. Every session this app
+ * creates must carry it, or every MCP tool call fails with "no credential
+ * is stored for this server URL" regardless of how the vault is configured.
+ */
+const CREDENTIAL_VAULT_ID = "vlt_011CdCrPi2c496nVaiRCAPLd";
 
 let cached: Anthropic | null = null;
 export function anthropic(): Anthropic {
@@ -61,17 +69,29 @@ export function environmentId(): string {
   return id;
 }
 
-/** Branch protocol appended when the website repo is mounted in a session. */
+/**
+ * Branch protocol appended when the website repo is mounted for the Site
+ * Experience Engineer. Branch naming (`seo-agent/<proposal-id>`) matches the
+ * agent's own persisted system prompt (Stage 5 — Implement in an Isolated
+ * Runner) exactly, so the kickoff-time instruction and the agent's durable
+ * identity never disagree. Whether the agent opens the PR itself via its
+ * GitHub MCP connector or leaves the branch for the platform to pick up,
+ * `syncAgentBranches` (lib/github.ts) picks up either case and surfaces it
+ * in the Approvals queue — this protocol text doesn't need to pin down
+ * which one happens.
+ */
 export function branchProtocol(repo: string): string {
   return [
     ``,
     `--- CHANGE-DELIVERY PROTOCOL (mandatory) ---`,
     `The website repository (${repo}) is mounted at /workspace/site with push access.`,
     `When you have concrete file-level changes:`,
-    `1. cd /workspace/site && git checkout -b seo/<short-kebab-slug> (one branch per coherent change set)`,
+    `1. cd /workspace/site && git checkout -b seo-agent/<proposal-id> (one branch per coherent change set,`,
+    `   per your own Stage 5 protocol)`,
     `2. Apply the changes, commit with a clear message explaining the SEO rationale, and push the branch.`,
-    `3. Do NOT open a pull request and do NOT push to main — the SEO Forge platform`,
-    `   detects seo/* branches, opens the PR, and a human approves the merge.`,
+    `3. Never push directly to the default branch and never merge — a human approves every merge in the`,
+    `   SEOForge dashboard. Whether you open the PR yourself or leave the pushed branch for the platform`,
+    `   to open, either way it lands in the human approval queue.`,
     `4. End your run with a short summary: branches pushed, files changed, expected impact.`,
     `If your findings need no file changes, just report them clearly.`,
   ].join("\n");
@@ -98,25 +118,55 @@ export function wpProtocol(url: string): string {
   ].join("\n");
 }
 
-/** Create a Managed Agents session and send the kickoff message. */
+type AnthropicSession = Awaited<ReturnType<InstanceType<typeof Anthropic>["beta"]["sessions"]["create"]>>;
+
+export type StartSessionResult =
+  | { conflict: false; session: AnthropicSession }
+  | { conflict: true; runningRunId: string };
+
+/**
+ * Create a Managed Agents session and send the kickoff message.
+ *
+ * Best-effort concurrency guard: refuses to start a second session for a
+ * site that already has an `agent_runs` row stuck at `status: "running"`.
+ * This is a same-request read-then-write check, not a real distributed
+ * lock — there's no queue/lock infra in this app — but it's the one honest
+ * "prevent conflicts" signal the Supervisor Control Room can show, and it
+ * stops the nightly cron from double-starting a review on a slow site.
+ */
 export async function startAgentSession(opts: {
   agent: AgentKey;
   title: string;
   kickoff: string;
   /** The user's connected site — decides repo mount vs WordPress protocol. */
   site?: Site | null;
-  /** Attach the change-delivery protocol (reviews/content runs). */
+  /** Attach the change-delivery protocol (reviews/content runs). Only the
+   * Site Experience Engineer ever delivers file/CMS changes directly — the
+   * other agents research/plan/write and hand off structured requests to it
+   * instead, so this flag is a no-op for any other agent key. */
   withChanges?: boolean;
-}) {
+}): Promise<StartSessionResult> {
   const client = anthropic();
   const site = opts.site;
+
+  if (site) {
+    const { data: running } = await supabase()
+      .from("agent_runs")
+      .select("id")
+      .eq("site_id", site.id)
+      .eq("status", "running")
+      .limit(1)
+      .maybeSingle();
+    if (running) return { conflict: true, runningRunId: (running as { id: string }).id };
+  }
   const isGithub = !!site && (site.platform ?? "github") === "github" && !!site.github_repo;
   const isWp = !!site && site.platform === "wordpress";
+  const deliversChanges = !!opts.withChanges && opts.agent === "siteExperience";
 
   let mount = false;
   let repoFull = "";
   let token = "";
-  if (opts.withChanges && isGithub && site) {
+  if (deliversChanges && isGithub && site) {
     try {
       const { owner, repo } = siteRepoOf(site);
       repoFull = `${owner}/${repo}`;
@@ -131,6 +181,13 @@ export async function startAgentSession(opts: {
     agent: AGENT_TEAM[opts.agent].id,
     environment_id: environmentId(),
     title: opts.title,
+    // Every specialist's mcp_servers entries are auth-less by design — the
+    // Anthropic API matches vault credentials to a connector purely by URL,
+    // and that matching only activates when the session carries vault_ids.
+    // Omitting this was the actual cause of "no credential is stored for
+    // this server URL" — the credentials existed, the vault was just never
+    // attached to the session that needed them.
+    vault_ids: [CREDENTIAL_VAULT_ID],
     ...(mount
       ? {
           resources: [
@@ -146,8 +203,8 @@ export async function startAgentSession(opts: {
   });
 
   let kickoff = opts.kickoff;
-  if (opts.withChanges && mount) kickoff += branchProtocol(repoFull);
-  else if (opts.withChanges && isWp && site) kickoff += wpProtocol(site.url);
+  if (deliversChanges && mount) kickoff += branchProtocol(repoFull);
+  else if (deliversChanges && isWp && site) kickoff += wpProtocol(site.url);
   await client.beta.sessions.events.send(session.id, {
     events: [
       {
@@ -156,7 +213,7 @@ export async function startAgentSession(opts: {
       },
     ],
   });
-  return session;
+  return { conflict: false, session };
 }
 
 /** Text content of the agent's messages in a session (for the run detail view). */
@@ -181,6 +238,55 @@ export async function getSessionMessages(sessionId: string): Promise<string[]> {
   }
   return out;
 }
+
+/**
+ * Per-thread activity for a session, keyed off `session.thread_status_*`
+ * events — this is what the live multi-agent activity feed (Phase 4) will
+ * read to show which of the 4 agents is currently active and its status.
+ * Verified against a real session: thread events carry `agent_name` and
+ * `session_thread_id`; there is no separate child session id.
+ */
+export type ThreadActivity = {
+  threadId: string;
+  agentName: string;
+  status: "running" | "idle";
+  lastEventAt: string;
+};
+
+export async function getThreadActivity(sessionId: string): Promise<ThreadActivity[]> {
+  const client = anthropic();
+  const byThread = new Map<string, ThreadActivity>();
+  try {
+    const events = await client.beta.sessions.events.list(sessionId);
+    type ThreadEv = {
+      type: string;
+      session_thread_id?: string;
+      agent_name?: string;
+      processed_at?: string;
+    };
+    for (const ev of (events.data ?? []) as unknown as ThreadEv[]) {
+      if (ev.type !== "session.thread_status_running" && ev.type !== "session.thread_status_idle") continue;
+      if (!ev.session_thread_id) continue;
+      byThread.set(ev.session_thread_id, {
+        threadId: ev.session_thread_id,
+        agentName: ev.agent_name ?? "Unknown agent",
+        status: ev.type === "session.thread_status_running" ? "running" : "idle",
+        lastEventAt: ev.processed_at ?? new Date().toISOString(),
+      });
+    }
+  } catch {
+    // session may be deleted or unreachable — caller handles empty
+  }
+  return [...byThread.values()];
+}
+
+/**
+ * Structured artifacts (SearchFinding, ContentOpportunity, ImplementationProposal,
+ * etc.) arrive as fenced ```json code blocks inside normal `agent.message`
+ * text — verified against a live session. Parsing/routing lives in
+ * `lib/artifacts.ts` (`parseArtifacts`/`ingestArtifacts`), called from the
+ * webhook handler on every finished run.
+ */
 
 export function consoleUrl(sessionId: string): string {
   return `https://platform.claude.com/workspaces/default/sessions/${sessionId}`;

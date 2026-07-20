@@ -8,6 +8,7 @@ import { pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 export function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
 }
+export const dynamicParams = false;
 
 export async function generateMetadata({
   params,
@@ -79,9 +80,7 @@ export default async function BlogPostPage({
           ← All posts
         </Link>
         <div className="mt-4 flex items-center gap-3 text-[11px] text-fg-faint">
-          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 font-medium text-primary">
-            {post.tag}
-          </span>
+          <Link href={`/blog/category/${post.tag.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className="rounded-full bg-primary/15 px-2.5 py-0.5 font-medium text-primary">{post.tag}</Link>
           <time dateTime={post.date}>{post.date}</time>
           <span>{post.readMinutes} min read</span>
         </div>
@@ -119,10 +118,10 @@ export default async function BlogPostPage({
         <div className="panel mt-8 flex flex-wrap items-center justify-between gap-4 p-6">
           <p className="text-sm font-medium">Want this running on your site?</p>
           <Link
-            href="/how-it-works"
+            href="/pricing"
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-dim"
           >
-            See how it works
+            Choose Your Plan
           </Link>
         </div>
       </article>

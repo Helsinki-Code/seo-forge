@@ -12,3 +12,8 @@ alter table approvals add column if not exists payload jsonb;         -- structu
 create index if not exists sites_user_idx on sites(user_id);
 create index if not exists agent_runs_site_idx on agent_runs(site_id);
 create index if not exists approvals_site_idx on approvals(site_id);
+
+
+
+
+

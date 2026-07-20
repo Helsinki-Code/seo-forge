@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const session = await startAgentSession({
+    const result = await startAgentSession({
       agent,
       title: `${AGENT_TEAM[agent].name} — ${kind} — ${site.name}`,
       kickoff: prompt,
@@ -39,6 +39,17 @@ export async function POST(req: NextRequest) {
       // GitHub sites get the repo mounted; WordPress sites get the JSON protocol.
       withChanges: ["full_review", "content", "deploy"].includes(kind),
     });
+
+    if (result.conflict) {
+      return NextResponse.json(
+        {
+          error: "A run is already in progress for this site. Wait for it to finish before starting another.",
+          runningRunId: result.runningRunId,
+        },
+        { status: 409 },
+      );
+    }
+    const session = result.session;
 
     try {
       await supabase().from("agent_runs").insert({

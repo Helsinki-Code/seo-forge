@@ -26,26 +26,38 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const session = await startAgentSession({
-      agent: "imageGenerator",
+    const result = await startAgentSession({
+      agent: "contentGrowth",
       title: `Media for ${articleUrl} — ${site.name}`,
       site,
       kickoff: [
         `Fetch and read the article at ${articleUrl} (use web_fetch).`,
         `Study its tone, style, structure, and existing imagery conventions.`,
-        `Generate a featured/hero image plus in-content images for any section that would benefit,`,
-        `matching the article's tone and visual style exactly. Provide SEO alt text for every image`,
-        `(primary keyword natural, under 125 chars, unique per image) and a labeled manifest.`,
+        `Prepare a MediaRequest for a featured/hero image plus in-content images for any section that`,
+        `would benefit, matching the article's tone and visual style exactly, and generate them with`,
+        `your fal.ai connector. Provide SEO alt text for every image (primary keyword natural, under`,
+        `125 chars, unique per image) and a labeled manifest.`,
         notes ? `Additional direction from the editor: ${notes}` : "",
       ]
         .filter(Boolean)
         .join("\n"),
     });
 
+    if (result.conflict) {
+      return NextResponse.json(
+        {
+          error: "A run is already in progress for this site. Wait for it to finish before starting another.",
+          runningRunId: result.runningRunId,
+        },
+        { status: 409 },
+      );
+    }
+    const session = result.session;
+
     try {
       await supabase().from("agent_runs").insert({
         site_id: site.id,
-        agent_name: "Article Image Generator",
+        agent_name: "SEOForge Content Growth Agent",
         session_id: session.id,
         kind: "media",
         status: "running",

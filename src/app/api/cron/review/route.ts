@@ -33,28 +33,35 @@ export async function GET(req: NextRequest) {
 
   const started: { siteId: string; sessionId: string }[] = [];
   const failed: { siteId: string; error: string }[] = [];
+  const skipped: { siteId: string; reason: string }[] = [];
 
   for (const site of sites) {
     try {
-      const session = await startAgentSession({
-        agent: "strategist",
+      const result = await startAgentSession({
+        agent: "supervisor",
         site,
         withChanges: true,
         title: `Scheduled SEO review — ${site.name} — ${new Date().toISOString().slice(0, 10)}`,
         kickoff: [
-          `Run a scheduled autonomous SEO review of ${site.url}.`,
-          `1. Crawl the site (homepage, sitemap, key pages) and note on-page issues.`,
-          `2. Run fresh SERP checks for the site's priority keywords; record position movements and SERP-feature changes.`,
-          `3. Identify the 3 highest-impact optimizations (titles, metas, internal links, content refreshes).`,
-          `4. Deliver those changes via the change-delivery protocol below — a human approves everything before it goes live.`,
-          `Report findings as a concise summary: what moved, what you recommend, expected impact.`,
+          `Run a scheduled autonomous review cycle for ${site.url}.`,
+          `Route investigation and any resulting work to the right specialists (content growth, search`,
+          `optimization, site experience) per your normal routing table and monitoring cadence.`,
+          `Identify the highest-impact findings and, where a change is warranted, prepare a validated`,
+          `implementation proposal — a human approves everything before it goes live.`,
+          `Report back a concise summary: what you found, what you recommend, expected impact.`,
         ].join("\n"),
       });
+
+      if (result.conflict) {
+        skipped.push({ siteId: site.id, reason: `run ${result.runningRunId} still in progress` });
+        continue;
+      }
+      const session = result.session;
 
       try {
         await supabase().from("agent_runs").insert({
           site_id: site.id,
-          agent_name: "SEO Content Strategy Agent",
+          agent_name: "SEOForge Workflow Supervisor",
           session_id: session.id,
           kind: "full_review",
           status: "running",
@@ -68,5 +75,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, started, failed });
+  return NextResponse.json({ ok: true, started, skipped, failed });
 }
